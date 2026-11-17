@@ -13,13 +13,17 @@ import (
 	"github.com/makachanm/flogger-lib"
 )
 
+const notificationRefreshInterval = 30 * time.Second
+
 type NotificationScreen struct {
 	Notifications *utils.ItemAutoDemandPagination[layer.Notification]
-	timelinelock  sync.RWMutex
+	notilock      sync.Mutex
 
 	FetchLayer layer.Client
 
 	config config.Configuration
+
+	autoRefreshStarted bool
 }
 
 func NewNotificationScreen(cfg config.Configuration, client layer.Client) *NotificationScreen {
@@ -44,8 +48,10 @@ func (ns *NotificationScreen) InitScene(screen tcell.Screen, ctx ApplicationCont
 	_, h := screen.Size()
 	ns.Notifications.SetMaxItemPerPage(int(h / ns.config.UI.MaxItemHeight))
 
-	autoRef := func() { ns.autoRefresh(screen, ctx) }
-	time.AfterFunc(time.Second*30, autoRef)
+	if !ns.autoRefreshStarted {
+		ns.autoRefreshStarted = true
+		time.AfterFunc(notificationRefreshInterval, func() { ns.autoRefresh(screen, ctx) })
+	}
 
 	ns.drawNotis(screen, ctx)
 }
@@ -92,9 +98,11 @@ func (ns *NotificationScreen) DoScene(screen tcell.Screen, event tcell.Event, ct
 
 func (ns *NotificationScreen) refreshData() {
 	flogger.Println("NotificationScreen: refreshing data")
-	ns.Notifications.Clear()
-
+	ns.notilock.Lock()
+	defer ns.notilock.Unlock()
 	currunt_pos := ns.Notifications.GetCurruntPagePointer()
+
+	ns.Notifications.Clear()
 
 	items := ns.FetchLayer.GetNotifications()
 	flogger.Printf("NotificationScreen: fetched %d new notifications", len(items))
@@ -118,11 +126,12 @@ func (ns *NotificationScreen) autoRefresh(screen tcell.Screen, ctx ApplicationCo
 		screen.Show()
 	}
 
-	autoRef := func() { ns.autoRefresh(screen, ctx) }
-	time.AfterFunc(time.Second*30, autoRef)
+	time.AfterFunc(notificationRefreshInterval, func() { ns.autoRefresh(screen, ctx) })
 }
 
 func (ns *NotificationScreen) drawNotis(screen tcell.Screen, ctx ApplicationContext) {
+	ns.notilock.Lock()
+	defer ns.notilock.Unlock()
 	textStyle := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
 
 	items := ns.Notifications.GetCurruntPage()

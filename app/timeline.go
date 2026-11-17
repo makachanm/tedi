@@ -13,6 +13,8 @@ import (
 	"github.com/makachanm/flogger-lib"
 )
 
+const timelineRefreshInterval = 20 * time.Second
+
 type CurruntTL int
 
 const (
@@ -50,13 +52,15 @@ func getTimeline(layer layer.Client, tl CurruntTL) []layer.Note {
 
 type TimelineScreen struct {
 	Timelines    *utils.ItemAutoDemandPagination[layer.Note]
-	timelinelock sync.RWMutex
+	timelinelock sync.Mutex
 
 	FetchLayer layer.Client
 	currunt_tl CurruntTL
 
 	config config.Configuration
 	showcw bool
+
+	autoRefreshStarted bool
 }
 
 func NewTimelineScreen(cfg config.Configuration, client layer.Client) *TimelineScreen {
@@ -89,10 +93,10 @@ func (ts *TimelineScreen) InitScene(screen tcell.Screen, ctx ApplicationContext)
 	_, h := screen.Size()
 	ts.Timelines.SetMaxItemPerPage(int(h / ts.config.UI.MaxItemHeight))
 
-	autoRef := func() {
-		ts.autoRefresh(screen, ctx)
+	if !ts.autoRefreshStarted {
+		ts.autoRefreshStarted = true
+		time.AfterFunc(timelineRefreshInterval, func() { ts.autoRefresh(screen, ctx) })
 	}
-	time.AfterFunc(time.Second*20, autoRef)
 
 	ts.drawNotes(screen, ctx)
 }
@@ -133,17 +137,15 @@ func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Ap
 
 		case tcell.KeyCtrlQ:
 			flogger.Println("TimelineScreen: Ctrl+Q pressed, toggling CW")
-			if ts.showcw {
-				ts.showcw = false
-			} else {
-				ts.showcw = true
-			}
+			ts.showcw = !ts.showcw
 			screen.Clear()
 			ts.drawNotes(screen, ctx)
 
 		case tcell.KeyCtrlX:
 			flogger.Println("TimelineScreen: Ctrl+X pressed, switching to action scene")
+			ts.timelinelock.Lock()
 			insertActionTargets(ts.Timelines.GetCurruntPage())
+			ts.timelinelock.Unlock()
 			ctx.TranslateTo("action")
 
 		case tcell.KeyCtrlN:
@@ -196,8 +198,7 @@ func (ts *TimelineScreen) autoRefresh(screen tcell.Screen, ctx ApplicationContex
 		screen.Show()
 	}
 
-	autoRef := func() { ts.autoRefresh(screen, ctx) }
-	time.AfterFunc(time.Second*20, autoRef)
+	time.AfterFunc(timelineRefreshInterval, func() { ts.autoRefresh(screen, ctx) })
 }
 
 func (ts *TimelineScreen) drawNotes(screen tcell.Screen, ctx ApplicationContext) {

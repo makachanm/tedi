@@ -27,6 +27,12 @@ func clearActionTargets() {
 	ActionTimelineNoteData = make([]layer.Note, 0)
 }
 
+func (as *ActionScreen) leave(ctx ApplicationContext) {
+	clearActionTargets()
+	as.selection = 0
+	ctx.TranslateTo("main")
+}
+
 type ActionType int
 
 const (
@@ -71,8 +77,7 @@ func (as *ActionScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Appl
 		switch ev.Key() {
 		case tcell.KeyCtrlX:
 			flogger.Println("ActionScreen: Ctrl+X pressed, returning to main scene")
-			clearActionTargets()
-			ctx.TranslateTo("main")
+			as.leave(ctx)
 
 		case tcell.KeyLeft:
 			if as.selection > 0 {
@@ -95,17 +100,18 @@ func (as *ActionScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Appl
 			as.action_mode = RENOTE
 
 		case tcell.KeyEnter:
-			flogger.Printf("ActionScreen: Enter pressed, performing action %v on note %s", as.action_mode, ActionTimelineNoteData[as.selection].Id)
+			if as.selection >= len(ActionTimelineNoteData) {
+				return
+			}
+			target := ActionTimelineNoteData[as.selection].Id
+			flogger.Printf("ActionScreen: Enter pressed, performing action %v on note %s", as.action_mode, target)
 			switch as.action_mode {
 			case REACT:
-				as.FetchLayer.PostReaction(ActionTimelineNoteData[as.selection].Id)
-				clearActionTargets()
-				ctx.TranslateTo("main")
+				as.FetchLayer.PostReaction(target)
 			case RENOTE:
-				as.FetchLayer.PostRenote(ActionTimelineNoteData[as.selection].Id)
-				clearActionTargets()
-				ctx.TranslateTo("main")
+				as.FetchLayer.PostRenote(target)
 			}
+			as.leave(ctx)
 		}
 	}
 
