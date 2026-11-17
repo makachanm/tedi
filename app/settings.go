@@ -212,12 +212,6 @@ func (v *settingsView) draw(s tcell.Screen) {
 	s.Clear()
 	_, h := s.Size()
 
-	title := " termfedi settings"
-	if v.dirty() {
-		title += "  (modified)"
-	}
-	utils.FillLine(s, 0, title, settingsBar)
-
 	account, server := "not logged in", "-"
 	if v.cfg.Session.LoggedIn() {
 		account = "@" + v.cfg.Session.Account
@@ -229,7 +223,7 @@ func (v *settingsView) draw(s tcell.Screen) {
 		server = fmt.Sprintf("%s (%s)", v.cfg.Session.Url, v.cfg.Session.Type)
 	}
 
-	y := 2
+	y := 1
 	for _, row := range [][2]string{{"Account", account}, {"Server", server}, {"File", v.path}} {
 		utils.WriteTo(s, 3, y, row[0], settingsDim)
 		utils.WriteTo(s, 13, y, row[1], settingsNormal)
@@ -255,6 +249,10 @@ func (v *settingsView) draw(s tcell.Screen) {
 		utils.WriteTo(s, 3, y+1+i, line, style)
 	}
 
-	utils.FillLine(s, h-1, " [Up/Down] Move | [Left/Right] Change | [Enter] Select | [Esc] Quit", settingsBar)
+	footer := " [Up/Down] Move | [Left/Right] Change | [Enter] Select | [Esc] Quit"
+	if v.dirty() {
+		footer = " (modified) |" + footer
+	}
+	utils.FillLine(s, h-1, footer, settingsBar)
 	s.Show()
 }
