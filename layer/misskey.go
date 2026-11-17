@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-
-	"github.com/makachanm/flogger-lib"
 )
 
 const misskeyTimelineLimit = 100
@@ -20,7 +18,6 @@ type MisskeyFetch struct {
 }
 
 func NewMisskeyFetch(token string, insurl string) (*MisskeyFetch, error) {
-	flogger.Printf("Initializing MisskeyFetch for instance %s", insurl)
 
 	u, err := url.Parse(insurl)
 	if err != nil {
@@ -31,7 +28,6 @@ func NewMisskeyFetch(token string, insurl string) (*MisskeyFetch, error) {
 
 func (m *MisskeyFetch) request(path string, body any) ([]byte, error) {
 	u := m.instance_url.JoinPath(path)
-	flogger.Printf("Misskey API call: POST %s", u.String())
 
 	payload, err := json.Marshal(body)
 	if err != nil {
@@ -95,19 +91,16 @@ func (n *MisskeyNote) toNote() Note {
 	return note
 }
 
-func (m *MisskeyFetch) timeline(name string, path string) []Note {
+func (m *MisskeyFetch) timeline(path string) []Note {
 	d, err := m.request(path, map[string]any{"limit": misskeyTimelineLimit})
 	if err != nil {
-		flogger.Errorf("Failed to get %s timeline: %v", name, err)
 		return nil
 	}
 
 	var mnotes []MisskeyNote
 	if err := json.Unmarshal(d, &mnotes); err != nil {
-		flogger.Errorf("Failed to unmarshal Misskey notes for %s timeline: %v", name, err)
 		return nil
 	}
-	flogger.Printf("Fetched %d notes from %s timeline", len(mnotes), name)
 
 	notes := make([]Note, 0, len(mnotes))
 	for i := range mnotes {
@@ -117,15 +110,15 @@ func (m *MisskeyFetch) timeline(name string, path string) []Note {
 }
 
 func (m *MisskeyFetch) GetGlobalTimeline() []Note {
-	return m.timeline("global", "api/notes/global-timeline")
+	return m.timeline("api/notes/global-timeline")
 }
 
 func (m *MisskeyFetch) GetLocalTimeline() []Note {
-	return m.timeline("local", "api/notes/local-timeline")
+	return m.timeline("api/notes/local-timeline")
 }
 
 func (m *MisskeyFetch) GetHomeTimeline() []Note {
-	return m.timeline("home", "api/notes/timeline")
+	return m.timeline("api/notes/timeline")
 }
 
 func misskeyNotiTypeToValue(s string) NotificationType {
@@ -146,16 +139,13 @@ func misskeyNotiTypeToValue(s string) NotificationType {
 func (m *MisskeyFetch) GetNotifications() []Notification {
 	d, err := m.request("api/i/notifications", map[string]any{"limit": misskeyTimelineLimit})
 	if err != nil {
-		flogger.Errorf("Failed to get notifications: %v", err)
 		return nil
 	}
 
 	var mnotis []MisskeyNotification
 	if err := json.Unmarshal(d, &mnotis); err != nil {
-		flogger.Errorf("Failed to unmarshal Misskey notifications: %v", err)
 		return nil
 	}
-	flogger.Printf("Fetched %d notifications", len(mnotis))
 
 	notis := make([]Notification, 0, len(mnotis))
 	for _, mn := range mnotis {
@@ -187,19 +177,11 @@ func (m *MisskeyFetch) GetNotifications() []Notification {
 }
 
 func (m *MisskeyFetch) PostRenote(note_id string) bool {
-	flogger.Printf("Posting renote for note %s", note_id)
 	_, err := m.request("api/notes/create", map[string]any{"renoteId": note_id})
-	if err != nil {
-		flogger.Errorf("Failed to post renote: %v", err)
-	}
 	return err == nil
 }
 
 func (m *MisskeyFetch) PostReaction(note_id string) bool {
-	flogger.Printf("Posting reaction for note %s", note_id)
 	_, err := m.request("api/notes/reactions/create", map[string]any{"noteId": note_id, "reaction": misskeyDefaultReaction})
-	if err != nil {
-		flogger.Errorf("Failed to post reaction: %v", err)
-	}
 	return err == nil
 }

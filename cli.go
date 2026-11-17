@@ -15,7 +15,6 @@ import (
 	"termfedi/config"
 	"termfedi/layer"
 
-	"github.com/makachanm/flogger-lib"
 	"golang.org/x/term"
 )
 
@@ -94,9 +93,7 @@ func login(ctx context.Context, cfg *config.Configuration, path string, opts aut
 
 	old := cfg.Session
 	if old.LoggedIn() && old.Token != session.Token && old.ClientID != "" {
-		if err := auth.Revoke(ctx, old); err != nil {
-			flogger.Printf("Could not revoke previous token: %v", err)
-		}
+		auth.Revoke(ctx, old)
 	}
 
 	cfg.Session = session
@@ -292,12 +289,9 @@ func ensureSession(cfg *config.Configuration, path string) error {
 	account, err := auth.Verify(vctx, cfg.Session)
 	switch {
 	case err == nil:
-		flogger.Printf("Authenticated as %s", account)
 		if account != cfg.Session.Account {
 			cfg.Session.Account = account
-			if err := config.Save(path, *cfg); err != nil {
-				flogger.Printf("Could not update account name in config: %v", err)
-			}
+			config.Save(path, *cfg)
 		}
 		return nil
 
@@ -310,7 +304,6 @@ func ensureSession(cfg *config.Configuration, path string) error {
 		return login(ctx, cfg, path, auth.Options{Instance: cfg.Session.Url, Type: cfg.Session.Type})
 
 	default:
-		flogger.Printf("Could not verify credentials, continuing: %v", err)
 		return nil
 	}
 }
@@ -324,8 +317,6 @@ func runClient(args []string) error {
 		fmt.Fprint(os.Stderr, usage)
 		return fmt.Errorf("unexpected argument %q", fs.Arg(0))
 	}
-
-	flogger.Println("Starting termfedi")
 
 	cfg, path, err := config.Load(*configPath)
 	if err != nil {

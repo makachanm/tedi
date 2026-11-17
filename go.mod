@@ -4,7 +4,6 @@ go 1.26.0
 
 require (
 	github.com/gdamore/tcell/v2 v2.13.10
-	github.com/makachanm/flogger-lib v0.0.0-20250928021456-aea3cac63ab6
 	github.com/mattn/go-runewidth v0.0.31
 	golang.org/x/net v0.62.0
 	golang.org/x/term v0.48.0

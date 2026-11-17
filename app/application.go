@@ -1,11 +1,11 @@
 package app
 
 import (
+	"fmt"
 	"os"
 	utils "termfedi/utils"
 
 	"github.com/gdamore/tcell/v2"
-	"github.com/makachanm/flogger-lib"
 )
 
 type TerminalMainApp struct {
@@ -21,7 +21,6 @@ type TerminalMainApp struct {
 func NewTerminalScreen() *TerminalMainApp {
 	app := new(TerminalMainApp)
 
-	flogger.Println("Initializing TerminalMainApp")
 	app.currunt_scene = "main"
 	app.scenes = make(map[string]ApplicationScene)
 	app.termination_signal = make(chan int, 1)
@@ -33,16 +32,15 @@ func NewTerminalScreen() *TerminalMainApp {
 
 func (t *TerminalMainApp) InitTerminalScreen() error {
 	var e error
-	flogger.Println("Initializing tcell screen")
 	t.screen, e = tcell.NewScreen()
 
 	if e != nil {
-		return flogger.Errorf("Failed to create new screen: %v", e)
+		return fmt.Errorf("Failed to create new screen: %v", e)
 	}
 
 	e = t.screen.Init()
 	if e != nil {
-		return flogger.Errorf("Failed to init screen: %v", e)
+		return fmt.Errorf("Failed to init screen: %v", e)
 	}
 
 	// TODO: make color to customizeable
@@ -53,7 +51,6 @@ func (t *TerminalMainApp) InitTerminalScreen() error {
 }
 
 func (t *TerminalMainApp) RegisterScene(name string, scene ApplicationScene) {
-	flogger.Printf("Registering scene: %s", name)
 	t.scenes[name] = scene
 }
 
@@ -73,24 +70,20 @@ func (t *TerminalMainApp) DrawStatusBar(input string) {
 }
 
 func (t *TerminalMainApp) Mainloop() {
-	flogger.Printf("Starting main loop, initial scene: %s", t.currunt_scene)
 	t.scenes[t.currunt_scene].InitScene(t.screen, t.appctx)
 
 	for {
 		select {
 		case exitCode := <-t.termination_signal:
-			flogger.Printf("Termination signal received with exit code: %d", exitCode)
 			close(t.termination_signal)
 			close(t.transision_signal)
 			t.screen.Fini()
 			os.Exit(exitCode)
 
 		case target := <-t.transision_signal:
-			flogger.Printf("Transitioning from scene '%s' to '%s'", t.currunt_scene, target)
 			if _, ok := t.scenes[target]; ok {
 				t.currunt_scene = target
 			} else {
-				flogger.Printf("Transition target scene '%s' not found, staying in '%s'", target, t.currunt_scene)
 			}
 
 			t.screen.Clear()
@@ -105,14 +98,10 @@ func (t *TerminalMainApp) Mainloop() {
 
 		event := t.screen.PollEvent()
 
-		switch ev := event.(type) {
-		case *tcell.EventResize:
-			flogger.Printf("Window resized")
+		if _, ok := event.(*tcell.EventResize); ok {
 			t.scenes[t.currunt_scene].WindowChangedScene(t.screen, t.appctx)
 			t.screen.Clear()
 			t.screen.Sync()
-		default:
-			flogger.Printf("Received event: %T", ev)
 		}
 
 		t.scenes[t.currunt_scene].DoScene(t.screen, event, t.appctx)
