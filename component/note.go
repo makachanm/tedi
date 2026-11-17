@@ -63,7 +63,7 @@ func DrawNoteComponent(x int, y int, note layer.Note, ctx tcell.Screen, style tc
 		switch tokenType {
 		case html.TextToken:
 			h_text := []rune(htmls.Token().Data)
-			width := width - 2  // For indentations
+			width := width - 2 // For indentations
 			if len(h_text) >= width {
 				result.WriteString(string(h_text[:width]))
 				render_targets = append(render_targets, result.String())
