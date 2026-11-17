@@ -25,6 +25,7 @@ const usage = `Usage:
   tedi logout [-config FILE]    revoke the token and forget it
   tedi status [-config FILE]    show which account is configured
   tedi config [-config FILE]    open the settings screen
+  tedi version                  print the version
 
 Config is read from $TEDI_CONFIG, ./config.json, next to the binary,
 or the user config dir (e.g. ~/.config/tedi/config.json), in that order.
@@ -47,6 +48,9 @@ func run(args []string) error {
 		return runStatus(args)
 	case "config":
 		return runConfig(args)
+	case "version":
+		fmt.Println(version)
+		return nil
 	case "help":
 		fmt.Print(usage)
 		return nil
