@@ -126,7 +126,9 @@ func (ns *NotificationScreen) drawNotis(screen tcell.Screen, ctx ApplicationCont
 	}
 
 	page, total := ns.Notifications.position()
-	footer := fmt.Sprintf(" Noti Page %d/%d | [Quit] C-p | [Refresh] C-r | [Back] C-n | [Prev] <- [Next] -> ", page, total)
+	footer := footerText(ns.config.UI,
+		fmt.Sprintf("Noti Page %d/%d", page, total),
+		"[Quit] C-p | [Refresh] C-r | [Back] C-n | [Prev] <- [Next] ->")
 
 	ctx.DrawFooterbar(footer)
 }

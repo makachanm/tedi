@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"os"
+	"termfedi/config"
 	utils "termfedi/utils"
 
 	"github.com/gdamore/tcell/v2"
@@ -127,6 +128,13 @@ func (m *MainAppContexts) Exit(exitcode int) {
 
 func (m *MainAppContexts) TranslateTo(name string) {
 	m.transision_signal <- name
+}
+
+func footerText(ui config.UIConfiguration, info string, guide string) string {
+	if ui.Footer == config.FooterInfo {
+		return " " + info
+	}
+	return " " + info + " | " + guide
 }
 
 func (m *MainAppContexts) DrawFooterbar(content string) {

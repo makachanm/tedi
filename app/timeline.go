@@ -197,7 +197,9 @@ func (ts *TimelineScreen) drawNotes(screen tcell.Screen, ctx ApplicationContext)
 	}
 
 	page, total := ts.Timelines.position()
-	footer := fmt.Sprintf(" %s Page %d/%d | [Quit] C-p | [Refresh] C-r | [ShowCW] C-q | [Notifications] C-n | [Actions] C-x | [Timeline] C-e | [Prev] <- [Next] -> ", curruntTimeline(ts.currunt_tl), page, total)
+	footer := footerText(ts.config.UI,
+		fmt.Sprintf("%s Page %d/%d", curruntTimeline(ts.currunt_tl), page, total),
+		"[Quit] C-p | [Refresh] C-r | [ShowCW] C-q | [Notifications] C-n | [Actions] C-x | [Timeline] C-e | [Prev] <- [Next] ->")
 
 	ctx.DrawFooterbar(footer)
 }

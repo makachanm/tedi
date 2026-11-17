@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"termfedi/component"
 	"termfedi/config"
 	"termfedi/layer"
@@ -136,7 +135,9 @@ func (as *ActionScreen) drawNotes(screen tcell.Screen, ctx ApplicationContext) {
 
 	}
 
-	footer := fmt.Sprintf(" Action Mode: %s | [Back] C-x | [Enter] Do | [Prev] <- [Next] -> | [F1] React | [F2] Renote", selectedmode)
+	footer := footerText(as.config.UI,
+		"Action Mode: "+selectedmode,
+		"[Back] C-x | [Enter] Do | [Prev] <- [Next] -> | [F1] React | [F2] Renote")
 
 	ctx.DrawFooterbar(footer)
 	screen.Show()

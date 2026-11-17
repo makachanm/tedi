@@ -23,6 +23,7 @@ type settingsItem int
 const (
 	itemLayout settingsItem = iota
 	itemHeight
+	itemFooter
 	itemLogin
 	itemLogout
 	itemSave
@@ -70,7 +71,7 @@ func RunSettings(cfg config.Configuration, path string, message string) (config.
 }
 
 func (v *settingsView) items() []settingsItem {
-	items := []settingsItem{itemLayout, itemHeight, itemLogin}
+	items := []settingsItem{itemLayout, itemHeight, itemFooter, itemLogin}
 	if v.cfg.Session.LoggedIn() {
 		items = append(items, itemLogout)
 	}
@@ -91,6 +92,8 @@ func (v *settingsView) label(item settingsItem) string {
 			name = "Max note height"
 		}
 		return fmt.Sprintf("%-17s < %d >", name, v.cfg.UI.MaxItemHeight)
+	case itemFooter:
+		return fmt.Sprintf("%-17s < %s >", "Footer", v.cfg.UI.Footer)
 	case itemLogin:
 		if v.cfg.Session.LoggedIn() {
 			return "Log in again"
@@ -112,19 +115,37 @@ func (v *settingsView) adjustHeight(delta int) {
 	v.cfg.UI.MaxItemHeight = h
 }
 
-func (v *settingsView) toggleLayout() {
-	if v.cfg.UI.Layout == config.LayoutFit {
-		v.cfg.UI.Layout = config.LayoutClassic
-	} else {
-		v.cfg.UI.Layout = config.LayoutFit
+func (v *settingsView) toggle(item settingsItem) {
+	switch item {
+	case itemLayout:
+		if v.cfg.UI.Layout == config.LayoutFit {
+			v.cfg.UI.Layout = config.LayoutClassic
+		} else {
+			v.cfg.UI.Layout = config.LayoutFit
+		}
+	case itemFooter:
+		if v.cfg.UI.Footer == config.FooterInfo {
+			v.cfg.UI.Footer = config.FooterGuide
+		} else {
+			v.cfg.UI.Footer = config.FooterInfo
+		}
 	}
 }
 
-func (v *settingsView) layoutHint() string {
-	if v.cfg.UI.Layout == config.LayoutFit {
-		return "fit: each note takes only the lines it needs, up to the max height."
+func (v *settingsView) hint(item settingsItem) string {
+	switch item {
+	case itemLayout:
+		if v.cfg.UI.Layout == config.LayoutFit {
+			return "fit: each note takes only the lines it needs, up to the max height."
+		}
+		return "classic: every note takes the same fixed height."
+	case itemFooter:
+		if v.cfg.UI.Footer == config.FooterInfo {
+			return "info: the bottom bar shows only the page and mode."
+		}
+		return "guide: the bottom bar also lists the key bindings."
 	}
-	return "classic: every note takes the same fixed height."
+	return ""
 }
 
 func (v *settingsView) handleKey(ev *tcell.EventKey) (SettingsAction, bool) {
@@ -158,23 +179,23 @@ func (v *settingsView) handleKey(ev *tcell.EventKey) (SettingsAction, bool) {
 
 	case ev.Key() == tcell.KeyLeft || (ev.Key() == tcell.KeyRune && ev.Rune() == '-'):
 		switch selected {
-		case itemLayout:
-			v.toggleLayout()
+		case itemLayout, itemFooter:
+			v.toggle(selected)
 		case itemHeight:
 			v.adjustHeight(-1)
 		}
 	case ev.Key() == tcell.KeyRight || (ev.Key() == tcell.KeyRune && (ev.Rune() == '+' || ev.Rune() == '=')):
 		switch selected {
-		case itemLayout:
-			v.toggleLayout()
+		case itemLayout, itemFooter:
+			v.toggle(selected)
 		case itemHeight:
 			v.adjustHeight(1)
 		}
 
 	case ev.Key() == tcell.KeyEnter:
 		switch selected {
-		case itemLayout:
-			v.toggleLayout()
+		case itemLayout, itemFooter:
+			v.toggle(selected)
 		case itemLogin:
 			return SettingsLogin, true
 		case itemLogout:
@@ -226,8 +247,8 @@ func (v *settingsView) draw(s tcell.Screen) {
 	}
 
 	text, style := v.message, settingsNormal
-	if text == "" && v.items()[v.cursor] == itemLayout {
-		text, style = v.layoutHint(), settingsDim
+	if text == "" {
+		text, style = v.hint(v.items()[v.cursor]), settingsDim
 	}
 	w, _ := s.Size()
 	for i, line := range utils.WrapText(text, w-6) {
