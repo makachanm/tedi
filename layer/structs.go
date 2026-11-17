@@ -1,5 +1,7 @@
 package layer
 
+import "time"
+
 type Visiblity int
 type NotificationType int
 
@@ -73,6 +75,7 @@ type Note struct {
 	Author_finger string
 
 	Visiblity Visiblity
+	Time      time.Time
 
 	Spoiler string
 	Content string
@@ -80,11 +83,8 @@ type Note struct {
 	RenoteCount   int
 	ReactionCount int
 
-	HasMedia bool
-	IsRenote bool
-
-	Medias []string
-	Renote string
+	Medias    []string
+	RenotedBy string
 }
 
 type User struct {
@@ -98,6 +98,7 @@ type Notification struct {
 	Id   string
 	Type NotificationType
 
+	Time        time.Time
 	Content     string
 	ReactedUser User
 }

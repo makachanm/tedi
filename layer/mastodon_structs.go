@@ -1,5 +1,7 @@
 package layer
 
+import "time"
+
 type MastodonUser struct {
 	Name   string `json:"display_name"`
 	Finger string `json:"acct"`
@@ -11,6 +13,7 @@ type MastodonMedia struct {
 
 type MastodonNote struct {
 	Id              string          `json:"id"`
+	CreatedAt       time.Time       `json:"created_at"`
 	Content         string          `json:"content"`
 	Spoilerwarning  string          `json:"spoiler_text"`
 	User            MastodonUser    `json:"account"`
@@ -22,16 +25,18 @@ type MastodonNote struct {
 }
 
 type MastodonNotification struct {
-	Id      string           `json:"id"`
-	Type    string           `json:"type"`
-	Account MastodonNotiUser `json:"account"`
-	Status  *MastodonStatus  `json:"status,omitempty"`
+	Id        string           `json:"id"`
+	Type      string           `json:"type"`
+	CreatedAt time.Time        `json:"created_at"`
+	Account   MastodonNotiUser `json:"account"`
+	Status    *MastodonStatus  `json:"status,omitempty"`
 }
 
 type MastodonNotiUser struct {
-	Id       string `json:"id"`
-	Username string `json:"username"`
-	Acct     string `json:"acct"`
+	Id          string `json:"id"`
+	Username    string `json:"username"`
+	DisplayName string `json:"display_name"`
+	Acct        string `json:"acct"`
 }
 
 type MastodonStatus struct {

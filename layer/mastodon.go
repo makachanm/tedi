@@ -36,11 +36,25 @@ func (m *MastodonFetch) request(method string, path string, query url.Values) ([
 	return doRequest(req)
 }
 
+func (u MastodonUser) displayName() string {
+	if u.Name != "" {
+		return u.Name
+	}
+	return u.Finger
+}
+
 func (n *MastodonNote) toNote() Note {
+	if n.RenotedField != nil {
+		note := n.RenotedField.toNote()
+		note.RenotedBy = n.User.displayName()
+		return note
+	}
+
 	note := Note{
 		Id:            n.Id,
 		Author_finger: n.User.Finger,
-		Author_name:   n.User.Name,
+		Author_name:   n.User.displayName(),
+		Time:          n.CreatedAt,
 		Content:       n.Content,
 		Spoiler:       n.Spoilerwarning,
 		RenoteCount:   n.ReblogsCount,
@@ -48,15 +62,9 @@ func (n *MastodonNote) toNote() Note {
 		Visiblity:     platformVisblityToValue(n.Visibility),
 	}
 
-	if n.RenotedField != nil {
-		note.IsRenote = true
-		note.Renote = "Renote of " + n.RenotedField.User.Name + "'s Note: <br>" + n.RenotedField.Content
-	}
-
 	for _, media := range n.Medias {
 		note.Medias = append(note.Medias, media.URL)
 	}
-	note.HasMedia = len(note.Medias) > 0
 
 	return note
 }
@@ -112,9 +120,10 @@ func (m *MastodonFetch) GetNotifications() []Notification {
 		noti := Notification{
 			Id:   mn.Id,
 			Type: n_type,
+			Time: mn.CreatedAt,
 			ReactedUser: User{
 				Id:          mn.Account.Id,
-				User_name:   mn.Account.Username,
+				User_name:   mn.Account.DisplayName,
 				User_finger: mn.Account.Acct,
 			},
 		}

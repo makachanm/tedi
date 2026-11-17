@@ -1,89 +1,51 @@
 package component
 
 import (
-	"fmt"
-	"strings"
 	"termfedi/layer"
-	"termfedi/utils"
 
 	"github.com/gdamore/tcell/v2"
-	"golang.org/x/net/html"
 )
 
-func DrawNotificationComponent(x int, y int, noti layer.Notification, ctx tcell.Screen, style tcell.Style, maxheight int) {
-	switch noti.Type {
+func notificationLabel(t layer.NotificationType) (string, tcell.Color) {
+	switch t {
 	case layer.NOTI_MENTION:
-		mention_from := fmt.Sprintf("Got a mention from (@%s)", noti.ReactedUser.User_finger)
-		utils.WriteTo(ctx, x+1, y, mention_from, style)
-		drawOthers(x, y, noti, ctx, style, maxheight)
-
+		return "Mention", tcell.ColorAqua
 	case layer.NOTI_FAVOURITE:
-		mention_from := fmt.Sprintf("Got a favourite from (@%s)", noti.ReactedUser.User_finger)
-		utils.WriteTo(ctx, x+1, y, mention_from, style)
-		drawOthers(x, y, noti, ctx, style, maxheight)
-
+		return "Favourite", tcell.ColorYellow
 	case layer.NOTI_RENOTE:
-		mention_from := fmt.Sprintf("Got a renote from (@%s)", noti.ReactedUser.User_finger)
-		utils.WriteTo(ctx, x+1, y, mention_from, style)
-		drawOthers(x, y, noti, ctx, style, maxheight)
-
+		return "Renote", tcell.ColorGreen
 	case layer.NOTI_FOLLOW:
-		mention_from := fmt.Sprintf("Got a follow from (@%s)", noti.ReactedUser.User_finger)
-		utils.WriteTo(ctx, x+1, y, mention_from, style)
+		return "Follow", tcell.ColorFuchsia
+	default:
+		return "Notice", tcell.ColorGray
 	}
-
 }
 
-func drawOthers(x int, y int, noti layer.Notification, ctx tcell.Screen, style tcell.Style, maxheight int) {
-	utils.WriteTo(ctx, x+1, y+1, "Note RN: ", style)
-
-	var render_targets []string = make([]string, 0)
-
-	var result strings.Builder
-	noti.Content = strings.ReplaceAll(noti.Content, "\n", "<br>")
-
-	htmls := html.NewTokenizer(strings.NewReader(noti.Content))
-	loops := true
-
-	for loops {
-		tokenType := htmls.Next()
-		switch tokenType {
-		case html.TextToken:
-			h_text := htmls.Token().Data
-			width, _ := ctx.Size()
-			if len(h_text) >= width {
-				result.WriteString(h_text[:width])
-				render_targets = append(render_targets, result.String())
-				result.Reset()
-				result.WriteString(h_text[width:])
-			} else {
-				result.WriteString(h_text)
-			}
-
-		case html.SelfClosingTagToken, html.StartTagToken:
-			tname, _ := htmls.TagName()
-			if string(tname) == "br" {
-				result.WriteString(htmls.Token().Data)
-				render_targets = append(render_targets, result.String())
-				result.Reset()
-			} else {
-				result.WriteString(htmls.Token().Data)
-			}
-
-		case html.ErrorToken:
-			render_targets = append(render_targets, result.String())
-			loops = false
-		}
+func DrawNotificationComponent(x int, y int, noti layer.Notification, ctx tcell.Screen, style tcell.Style, maxheight int) {
+	screenW, _ := ctx.Size()
+	width := screenW - x - 2
+	clearRect(ctx, x, y, screenW-x, maxheight, style)
+	if width < 10 {
+		return
 	}
 
-	if !(len(render_targets) <= maxheight-4) {
-		render_targets[maxheight-4] = "(....)"
+	label, color := notificationLabel(noti.Type)
+	user := noti.ReactedUser
+	header := []segment{{label + "  ", style.Foreground(color).Bold(true)}}
+	if user.User_name != "" {
+		header = append(header, segment{user.User_name + " ", style.Bold(true)})
+	}
+	header = append(header, segment{"@" + user.User_finger, dimStyle(style)})
+	drawHeader(ctx, x+1, y, width, header, relativeTime(noti.Time), style)
+
+	if noti.Type == layer.NOTI_FOLLOW || noti.Content == "" {
+		return
 	}
 
-	for i, ntx := range render_targets {
-		utils.WriteTo(ctx, x+1, y+2+i, ntx, style)
-		if i >= maxheight-4 {
-			break
-		}
+	bodyStyle := style
+	if noti.Type != layer.NOTI_MENTION {
+		bodyStyle = dimStyle(style)
 	}
+	lines := wrapLines(htmlToText(noti.Content), width-2, bodyStyle)
+	drawBody(ctx, x+1, y+1, maxheight-2, width-2, lines, style)
 }

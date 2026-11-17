@@ -1,5 +1,7 @@
 package layer
 
+import "time"
+
 type MisskeyUser struct {
 	Id     string  `json:"id"`
 	Name   *string `json:"name"`
@@ -13,6 +15,7 @@ type MisskeyFile struct {
 
 type MisskeyNote struct {
 	Id             string        `json:"id"`
+	CreatedAt      time.Time     `json:"createdAt"`
 	Content        *string       `json:"text"`
 	Spoilerwarning *string       `json:"cw"`
 	User           MisskeyUser   `json:"user"`
@@ -24,8 +27,9 @@ type MisskeyNote struct {
 }
 
 type MisskeyNotification struct {
-	Id   string       `json:"id"`
-	Type string       `json:"type"`
-	User *MisskeyUser `json:"user,omitempty"`
-	Note *MisskeyNote `json:"note,omitempty"`
+	Id        string       `json:"id"`
+	Type      string       `json:"type"`
+	CreatedAt time.Time    `json:"createdAt"`
+	User      *MisskeyUser `json:"user,omitempty"`
+	Note      *MisskeyNote `json:"note,omitempty"`
 }

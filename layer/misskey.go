@@ -59,10 +59,17 @@ func (u MisskeyUser) displayName() string {
 }
 
 func (n *MisskeyNote) toNote() Note {
+	if n.Renote != nil && n.Content == nil {
+		note := n.Renote.toNote()
+		note.RenotedBy = n.User.displayName()
+		return note
+	}
+
 	note := Note{
 		Id:            n.Id,
 		Author_finger: n.User.finger(),
 		Author_name:   n.User.displayName(),
+		Time:          n.CreatedAt,
 		RenoteCount:   n.RenoteCount,
 		ReactionCount: n.ReactionCount,
 		Visiblity:     platformVisblityToValue(n.Visibility),
@@ -74,19 +81,9 @@ func (n *MisskeyNote) toNote() Note {
 		note.Spoiler = *n.Spoilerwarning
 	}
 
-	if n.Renote != nil && n.Content == nil {
-		note.IsRenote = true
-		var text string
-		if n.Renote.Content != nil {
-			text = *n.Renote.Content
-		}
-		note.Renote = "Renote of " + n.Renote.User.displayName() + "'s Note: <br>" + text
-	}
-
 	for _, file := range n.Files {
 		note.Medias = append(note.Medias, file.URL)
 	}
-	note.HasMedia = len(note.Medias) > 0
 
 	return note
 }
@@ -154,7 +151,7 @@ func (m *MisskeyFetch) GetNotifications() []Notification {
 			continue
 		}
 
-		noti := Notification{Id: mn.Id, Type: n_type}
+		noti := Notification{Id: mn.Id, Type: n_type, Time: mn.CreatedAt}
 		if mn.User != nil {
 			noti.ReactedUser = User{
 				Id:          mn.User.Id,

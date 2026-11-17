@@ -1,110 +1,74 @@
 package component
 
 import (
-	"fmt"
 	"strings"
+
 	"termfedi/layer"
-	utils "termfedi/utils"
+	"termfedi/utils"
 
 	"github.com/gdamore/tcell/v2"
-	"golang.org/x/net/html"
 )
 
-/*
-	TODO:
-	- Support for CW
-	- Image/Renote alias
-	- Renote/Favoriute count
-	- Visiblity Range
-*/
-
 func DrawNoteComponent(x int, y int, note layer.Note, ctx tcell.Screen, style tcell.Style, maxheight int, viewcw bool) {
-	width, _ := ctx.Size()
-
-	name := fmt.Sprintf("%s (@%s)", note.Author_name, note.Author_finger)
-	if len(name) >= width {
-		name = fmt.Sprintf("%s (...)", note.Author_name)
+	screenW, _ := ctx.Size()
+	width := screenW - x - 2
+	clearRect(ctx, x, y, screenW-x, maxheight, style)
+	if width < 10 {
+		return
 	}
 
-	utils.WriteTo(ctx, x+1, y, name, style)
+	dim := dimStyle(style)
+	row := y
 
-	var content string
-
-	if len(note.Spoiler) > 0 {
-		if viewcw {
-			content = note.Content
-		} else {
-			content = fmt.Sprintf("CW: %s", note.Spoiler)
-		}
-	} else {
-		content = note.Content
+	if note.RenotedBy != "" {
+		writeSegments(ctx, x+1, row, width, []segment{{"↻ " + note.RenotedBy + " renoted", style.Foreground(tcell.ColorGreen)}})
+		row++
 	}
 
-	if note.IsRenote {
-		content = note.Renote
+	name := note.Author_name
+	if name == "" {
+		name = note.Author_finger
 	}
+	drawHeader(ctx, x+1, row, width, []segment{
+		{name, style.Bold(true)},
+		{" @" + note.Author_finger, dim},
+	}, relativeTime(note.Time), style)
+	row++
 
-	content = strings.ReplaceAll(content, "\n", "<br>")
+	lastRow := y + maxheight - 2
+	metaRow := row + drawBody(ctx, x+1, row, lastRow-row, width-2, noteLines(note, viewcw, width-2, style), style)
 
-	var render_targets []string = make([]string, 0)
-
-	if note.HasMedia {
-		for _, media := range note.Medias {
-			render_targets = append(render_targets, fmt.Sprintf("[Image: %s]", media))
-		}
-	}
-
-	var result strings.Builder
-	htmls := html.NewTokenizer(strings.NewReader(content))
-	loops := true
-
-	for loops {
-		tokenType := htmls.Next()
-		switch tokenType {
-		case html.TextToken:
-			h_text := []rune(htmls.Token().Data)
-			width := width - 2 // For indentations
-			if len(h_text) >= width {
-				result.WriteString(string(h_text[:width]))
-				render_targets = append(render_targets, result.String())
-				result.Reset()
-				result.WriteString(string(h_text[width:]))
-			} else {
-				result.WriteString(string(h_text))
-			}
-
-		case html.SelfClosingTagToken, html.StartTagToken:
-			tname, _ := htmls.TagName()
-			h_text := []rune(htmls.Token().Data)
-			if string(tname) == "br" {
-				result.WriteString(string(h_text))
-				render_targets = append(render_targets, result.String())
-				result.Reset()
-			} else {
-				result.WriteString(string(h_text))
-			}
-		case html.ErrorToken:
-			render_targets = append(render_targets, result.String())
-			loops = false
-		}
-	}
-
-	for i := 0; i < maxheight-3; i++ {
-		utils.WriteTo(ctx, x+1, y+1+i, "|", style)
-
-		if i < len(render_targets) {
-			utils.WriteTo(ctx, x+1+2, y+1+i, render_targets[i], style)
-		}
-	}
-
-	status_parts := []string{}
+	meta := []string{strings.ToLower(layer.VisiblityToText(note.Visiblity))}
 	if note.RenoteCount > 0 {
-		status_parts = append(status_parts, fmt.Sprintf("RENOTE: %d", note.RenoteCount))
+		meta = append(meta, plural(note.RenoteCount, "renote"))
 	}
 	if note.ReactionCount > 0 {
-		status_parts = append(status_parts, fmt.Sprintf("FAVOURITES: %d", note.ReactionCount))
+		meta = append(meta, plural(note.ReactionCount, "fav"))
+	}
+	writeSegments(ctx, x+1, metaRow, width, []segment{{strings.Join(meta, " · "), dim}})
+}
+
+func noteLines(note layer.Note, viewcw bool, width int, style tcell.Style) []line {
+	var lines []line
+	dim := dimStyle(style)
+
+	if note.Spoiler != "" {
+		lines = append(lines, wrapLines("CW: "+note.Spoiler, width, style.Foreground(tcell.ColorYellow))...)
+		if !viewcw {
+			hidden := "content hidden"
+			if n := len(note.Medias); n > 0 {
+				hidden += ", " + plural(n, "attachment")
+			}
+			return append(lines, line{"(" + hidden + ")", dim})
+		}
 	}
 
-	status := fmt.Sprintf("(%s Note) %s", layer.VisiblityToText(note.Visiblity), strings.Join(status_parts, " | "))
-	utils.WriteTo(ctx, x+1, y+maxheight-2, status, style)
+	lines = append(lines, wrapLines(htmlToText(note.Content), width, style)...)
+	for _, media := range note.Medias {
+		lines = append(lines, line{utils.Truncate("[media] "+media, width), dim})
+	}
+	if len(lines) == 0 {
+		lines = append(lines, line{"(empty)", dim})
+	}
+	return lines
 }
