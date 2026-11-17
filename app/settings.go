@@ -71,7 +71,11 @@ func RunSettings(cfg config.Configuration, path string, message string) (config.
 }
 
 func (v *settingsView) items() []settingsItem {
-	items := []settingsItem{itemLayout, itemHeight, itemFooter, itemLogin}
+	items := []settingsItem{itemLayout}
+	if v.cfg.UI.Layout != config.LayoutFit {
+		items = append(items, itemHeight)
+	}
+	items = append(items, itemFooter, itemLogin)
 	if v.cfg.Session.LoggedIn() {
 		items = append(items, itemLogout)
 	}
@@ -87,11 +91,7 @@ func (v *settingsView) label(item settingsItem) string {
 	case itemLayout:
 		return fmt.Sprintf("%-17s < %s >", "Layout", v.cfg.UI.Layout)
 	case itemHeight:
-		name := "Note height"
-		if v.cfg.UI.Layout == config.LayoutFit {
-			name = "Max note height"
-		}
-		return fmt.Sprintf("%-17s < %d >", name, v.cfg.UI.MaxItemHeight)
+		return fmt.Sprintf("%-17s < %d >", "Note height", v.cfg.UI.MaxItemHeight)
 	case itemFooter:
 		return fmt.Sprintf("%-17s < %s >", "Footer", v.cfg.UI.Footer)
 	case itemLogin:
@@ -136,7 +136,7 @@ func (v *settingsView) hint(item settingsItem) string {
 	switch item {
 	case itemLayout:
 		if v.cfg.UI.Layout == config.LayoutFit {
-			return "fit: each note takes only the lines it needs, up to the max height."
+			return "fit: each note takes only the lines it needs, with no height limit."
 		}
 		return "classic: every note takes the same fixed height."
 	case itemFooter:

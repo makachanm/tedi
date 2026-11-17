@@ -40,7 +40,7 @@ func (l *pagedList[T]) resize(screenW, screenH int) {
 
 func (l *pagedList[T]) height(item T) int {
 	if l.ui.Layout == config.LayoutFit {
-		return min(l.measure(item, l.screenW), l.ui.MaxItemHeight)
+		return min(l.measure(item, l.screenW), max(l.screenH-1, 1))
 	}
 	return l.ui.MaxItemHeight
 }
