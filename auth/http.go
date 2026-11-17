@@ -15,7 +15,7 @@ import (
 
 const (
 	clientName = "tedi"
-	clientSite = "https://github.com/makachanm/termfedi"
+	clientSite = "https://github.com/makachanm/tedi"
 	userAgent  = "tedi"
 )
 

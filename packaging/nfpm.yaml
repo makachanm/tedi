@@ -8,7 +8,7 @@ section: net
 priority: optional
 maintainer: maka <maka8926jp@gmail.com>
 description: TUI-based Mastodon/Misskey client.
-homepage: https://github.com/makachanm/termfedi
+homepage: https://github.com/makachanm/tedi
 license: Zlib
 
 contents:

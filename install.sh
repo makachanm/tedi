@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-REPO="makachanm/termfedi"
+REPO="makachanm/tedi"
 BASE_URL=${TEDI_BASE_URL:-"https://github.com/$REPO/releases/download/latest"}
 
 fail() {
