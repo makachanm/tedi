@@ -1,10 +1,21 @@
 # tedi
 TUI-based Mastodon/Misskey client written in Go.
 
+## Install
+```
+curl -fsSL https://raw.githubusercontent.com/makachanm/termfedi/main/install.sh | sh
+```
+`.deb`, `.rpm` and tarballs for amd64/arm64 are on the [latest release](https://github.com/makachanm/termfedi/releases/tag/latest), rebuilt on every push to main.
+
+To build from source:
 ```
 go build .
-./tedi login mastodon.social
-./tedi
+```
+
+## Usage
+```
+tedi login mastodon.social
+tedi
 ```
 
 `tedi login` opens your browser to authorize the app. 
