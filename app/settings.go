@@ -2,13 +2,11 @@ package app
 
 import (
 	"fmt"
-	"strings"
 
 	"termfedi/config"
 	"termfedi/utils"
 
 	"github.com/gdamore/tcell/v2"
-	"github.com/mattn/go-runewidth"
 )
 
 type SettingsAction int
@@ -159,34 +157,6 @@ func (v *settingsView) handleKey(ev *tcell.EventKey) (SettingsAction, bool) {
 	return 0, false
 }
 
-func wrapText(text string, width int) []string {
-	if text == "" || width <= 0 {
-		return nil
-	}
-	var lines []string
-	line := ""
-	for _, word := range strings.Fields(text) {
-		if line != "" && runewidth.StringWidth(line+" "+word) > width {
-			lines = append(lines, line)
-			line = ""
-		}
-		if line == "" {
-			line = word
-		} else {
-			line += " " + word
-		}
-	}
-	return append(lines, line)
-}
-
-func fillLine(s tcell.Screen, y int, text string, style tcell.Style) {
-	w, _ := s.Size()
-	for x := 0; x < w; x++ {
-		s.SetContent(x, y, ' ', nil, style)
-	}
-	utils.WriteTo(s, 0, y, text, style)
-}
-
 func (v *settingsView) draw(s tcell.Screen) {
 	s.Clear()
 	_, h := s.Size()
@@ -195,7 +165,7 @@ func (v *settingsView) draw(s tcell.Screen) {
 	if v.dirty() {
 		title += "  (modified)"
 	}
-	fillLine(s, 0, title, settingsBar)
+	utils.FillLine(s, 0, title, settingsBar)
 
 	account, server := "not logged in", "-"
 	if v.cfg.Session.LoggedIn() {
@@ -226,10 +196,10 @@ func (v *settingsView) draw(s tcell.Screen) {
 	}
 
 	w, _ := s.Size()
-	for i, line := range wrapText(v.message, w-6) {
+	for i, line := range utils.WrapText(v.message, w-6) {
 		utils.WriteTo(s, 3, y+1+i, line, settingsNormal)
 	}
 
-	fillLine(s, h-1, " [Up/Down] Move | [Left/Right] Change | [Enter] Select | [Esc] Quit", settingsBar)
+	utils.FillLine(s, h-1, " [Up/Down] Move | [Left/Right] Change | [Enter] Select | [Esc] Quit", settingsBar)
 	s.Show()
 }

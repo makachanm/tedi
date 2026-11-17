@@ -56,17 +56,10 @@ func (t *TerminalMainApp) RegisterScene(name string, scene ApplicationScene) {
 
 // TODO: add global event handling
 func (t *TerminalMainApp) DrawStatusBar(input string) {
-	w, h := t.screen.Size()
+	_, h := t.screen.Size()
 	textStyle := tcell.StyleDefault.Foreground(tcell.ColorBlack).Background(tcell.ColorWhite)
 
-	text := input
-	nullspace := w - len(text)
-
-	for i := 0; i < nullspace; i++ {
-		text += " "
-	}
-
-	utils.WriteTo(t.screen, 0, h-1, text, textStyle)
+	utils.FillLine(t.screen, h-1, input, textStyle)
 }
 
 func (t *TerminalMainApp) Mainloop() {
