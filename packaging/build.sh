@@ -1,13 +1,15 @@
 #!/bin/sh
 set -eu
 
-VERSION=${VERSION:-0.0.0}
 ARCHES=${ARCHES:-"amd64 arm64"}
 NFPM=${NFPM:-nfpm}
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 DIST="$ROOT/dist"
-export VERSION
+
+BUILD=$(TZ=UTC0 git -C "$ROOT" log -1 --format=%cd --date=format-local:%Y%m%d%H%M%S)
+COMMIT=$(git -C "$ROOT" rev-parse --short HEAD)
+export BUILD
 
 rm -rf "$DIST"
 mkdir -p "$DIST"
@@ -24,7 +26,7 @@ for arch in $ARCHES; do
 	mkdir -p "$work"
 
 	CGO_ENABLED=0 GOOS=linux GOARCH=$arch go build -C "$ROOT" -trimpath \
-		-ldflags "-s -w -X main.version=$VERSION" -o "$work/tedi" .
+		-ldflags "-s -w -X main.version=rolling-$BUILD-$COMMIT" -o "$work/tedi" .
 	cp "$ROOT/README.md" "$ROOT/LICENSE" "$work/"
 	tar -C "$DIST" -czf "$DIST/$name.tar.gz" "$name"
 

@@ -27,16 +27,15 @@ jobs:
       - run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.41.0
 
       - name: Build packages
-        run: VERSION=0.0.${{ github.run_number }} sh packaging/build.sh
+        run: sh packaging/build.sh
 
       - name: Publish latest release
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: 0.0.${{ github.run_number }}
         run: |
           git tag -f latest
           git push -f origin refs/tags/latest
-          title="Latest build ($VERSION)"
+          title="Rolling build"
           notes="Built from $GITHUB_SHA."
           if gh release view latest >/dev/null 2>&1; then
             gh release edit latest --title "$title" --notes "$notes"

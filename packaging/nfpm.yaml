@@ -1,7 +1,9 @@
 name: tedi
 arch: ${GOARCH}
 platform: linux
-version: ${VERSION}
+version: "0"
+version_schema: none
+release: ${BUILD}
 section: net
 priority: optional
 maintainer: maka <maka8926jp@gmail.com>
