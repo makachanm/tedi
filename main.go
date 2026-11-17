@@ -11,7 +11,7 @@ import (
 func main() {
 	flogger.Println("Starting termfedi")
 
-	cnf, err := config.LoadConfig()
+	cnf, _, err := config.Load("")
 	if err != nil {
 		flogger.Errorf("Failed to load config: %v", err)
 		panic(err)
