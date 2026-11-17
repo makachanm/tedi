@@ -1,0 +1,20 @@
+name: tedi
+arch: ${GOARCH}
+platform: linux
+version: ${VERSION}
+section: net
+priority: optional
+maintainer: maka <maka8926jp@gmail.com>
+description: TUI-based Mastodon/Misskey client.
+homepage: https://github.com/makachanm/termfedi
+license: Zlib
+
+contents:
+  - src: ./tedi
+    dst: /usr/bin/tedi
+    file_info:
+      mode: 0755
+  - src: ./LICENSE
+    dst: /usr/share/doc/tedi/LICENSE
+  - src: ./README.md
+    dst: /usr/share/doc/tedi/README.md
