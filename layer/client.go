@@ -29,7 +29,7 @@ func New(kind string, instanceURL string, token string) (Client, error) {
 	}
 }
 
-const userAgent = "termfedi"
+const userAgent = "tedi"
 
 var httpClient = &http.Client{Timeout: 20 * time.Second}
 

@@ -1,21 +1,21 @@
-# termfedi
+# tedi
 TUI-based Mastodon/Misskey client written in Go.
 
 ```
 go build .
-./termfedi login mastodon.social
-./termfedi
+./tedi login mastodon.social
+./tedi
 ```
 
-`termfedi login` opens your browser to authorize the app. 
+`tedi login` opens your browser to authorize the app. 
 
-`termfedi config` opens the settings screen.
+`tedi config` opens the settings screen.
 
-`termfedi status` shows the current account.
+`tedi status` shows the current account.
 
-`termfedi logout` revokes the token.
+`tedi logout` revokes the token.
 
-Settings are saved to `~/.config/termfedi/config.json`.
+Settings are saved to `~/.config/tedi/config.json`.
 
 ## Keys
 | Key | Timeline | Notifications | Actions |

@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"termfedi/config"
+	"tedi/config"
 )
 
 const oobRedirect = "urn:ietf:wg:oauth:2.0:oob"
@@ -89,7 +89,7 @@ func mastodonLogin(ctx context.Context, p *prompter, base string, software strin
 
 	var code string
 	if cb != nil {
-		p.printf("\nOpen this URL to authorize termfedi:\n\n  %s\n\n", authURL)
+		p.printf("\nOpen this URL to authorize tedi:\n\n  %s\n\n", authURL)
 		if openBrowser(authURL) {
 			p.printf("(Opened in your browser.) ")
 		}
@@ -150,7 +150,7 @@ func mastodonVerify(ctx context.Context, s config.SessionConfiguration) (string,
 
 func mastodonRevoke(ctx context.Context, s config.SessionConfiguration) error {
 	if s.ClientID == "" || s.ClientSecret == "" {
-		return errors.New("no client credentials stored (token was not created by `termfedi login`)")
+		return errors.New("no client credentials stored (token was not created by `tedi login`)")
 	}
 	return postForm(ctx, strings.TrimRight(s.Url, "/")+"/oauth/revoke", url.Values{
 		"client_id":     {s.ClientID},

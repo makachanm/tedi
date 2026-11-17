@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"termfedi/config"
+	"tedi/config"
 )
 
 type Options struct {

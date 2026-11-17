@@ -1,4 +1,4 @@
-module termfedi
+module tedi
 
 go 1.26.0
 

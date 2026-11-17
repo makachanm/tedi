@@ -3,8 +3,8 @@ package component
 import (
 	"strings"
 
-	"termfedi/layer"
-	"termfedi/utils"
+	"tedi/layer"
+	"tedi/utils"
 
 	"github.com/gdamore/tcell/v2"
 )

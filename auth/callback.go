@@ -68,7 +68,7 @@ func startCallbackServer(check checkFunc) (*callbackServer, error) {
 	return cb, nil
 }
 
-const page = `<!doctype html><meta charset="utf-8"><title>termfedi</title>
+const page = `<!doctype html><meta charset="utf-8"><title>tedi</title>
 <body style="font-family:sans-serif;max-width:32em;margin:4em auto"><h1>%s</h1><p>%s</p></body>`
 
 func (cb *callbackServer) wait(ctx context.Context) (map[string]string, error) {

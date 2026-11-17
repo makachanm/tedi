@@ -1,8 +1,8 @@
 package app
 
 import (
-	"termfedi/config"
-	"termfedi/utils"
+	"tedi/config"
+	"tedi/utils"
 )
 
 type pager[T any] interface {

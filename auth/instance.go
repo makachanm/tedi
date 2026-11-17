@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"strings"
 
-	"termfedi/config"
+	"tedi/config"
 )
 
 func NormalizeInstance(raw string) (string, error) {

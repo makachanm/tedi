@@ -1,7 +1,7 @@
 package component
 
 import (
-	"termfedi/layer"
+	"tedi/layer"
 
 	"github.com/gdamore/tcell/v2"
 )

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"termfedi/utils"
+	"tedi/utils"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"

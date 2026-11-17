@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"termfedi/config"
+	"tedi/config"
 )
 
 const misskeyPermissions = "read:account,read:notifications,write:notes,write:reactions"
@@ -41,7 +41,7 @@ func misskeyLogin(ctx context.Context, p *prompter, base string, manual bool) (c
 	authURL := base + "/miauth/" + session + "?" + params.Encode()
 
 	if cb != nil {
-		p.printf("\nOpen this URL to authorize termfedi:\n\n  %s\n\n", authURL)
+		p.printf("\nOpen this URL to authorize tedi:\n\n  %s\n\n", authURL)
 		if openBrowser(authURL) {
 			p.printf("(Opened in your browser.) ")
 		}
@@ -64,7 +64,7 @@ func misskeyLogin(ctx context.Context, p *prompter, base string, manual bool) (c
 		return config.SessionConfiguration{}, fmt.Errorf("check MiAuth session: %w", err)
 	}
 	if !res.OK || res.Token == "" {
-		return config.SessionConfiguration{}, errors.New("access was not approved (or the session expired); run `termfedi login` again")
+		return config.SessionConfiguration{}, errors.New("access was not approved (or the session expired); run `tedi login` again")
 	}
 
 	return config.SessionConfiguration{

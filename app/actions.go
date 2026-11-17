@@ -1,10 +1,10 @@
 package app
 
 import (
-	"termfedi/component"
-	"termfedi/config"
-	"termfedi/layer"
-	utils "termfedi/utils"
+	"tedi/component"
+	"tedi/config"
+	"tedi/layer"
+	utils "tedi/utils"
 
 	"github.com/gdamore/tcell/v2"
 )

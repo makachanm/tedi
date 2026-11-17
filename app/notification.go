@@ -3,9 +3,9 @@ package app
 import (
 	"fmt"
 	"sync"
-	"termfedi/component"
-	"termfedi/config"
-	"termfedi/layer"
+	"tedi/component"
+	"tedi/config"
+	"tedi/layer"
 	"time"
 
 	"github.com/gdamore/tcell/v2"

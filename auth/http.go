@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	clientName = "termfedi"
+	clientName = "tedi"
 	clientSite = "https://github.com/makachanm/termfedi"
-	userAgent  = "termfedi"
+	userAgent  = "tedi"
 )
 
 var ErrUnauthorized = errors.New("access token was rejected by the server")

@@ -13,7 +13,7 @@ const fileName = "config.json"
 
 func candidatePaths() []string {
 	var paths []string
-	if env := os.Getenv("TERMFEDI_CONFIG"); env != "" {
+	if env := os.Getenv("TEDI_CONFIG"); env != "" {
 		paths = append(paths, env)
 	}
 	if wd, err := os.Getwd(); err == nil {
@@ -33,7 +33,7 @@ func userConfigPath() string {
 	if err != nil {
 		return ""
 	}
-	return filepath.Join(dir, "termfedi", fileName)
+	return filepath.Join(dir, "tedi", fileName)
 }
 
 func Load(explicitPath string) (Configuration, string, error) {

@@ -3,8 +3,8 @@ package app
 import (
 	"fmt"
 	"os"
-	"termfedi/config"
-	utils "termfedi/utils"
+	"tedi/config"
+	utils "tedi/utils"
 
 	"github.com/gdamore/tcell/v2"
 )

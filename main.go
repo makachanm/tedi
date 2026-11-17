@@ -7,7 +7,7 @@ import (
 
 func main() {
 	if err := run(os.Args[1:]); err != nil {
-		fmt.Fprintln(os.Stderr, "termfedi:", err)
+		fmt.Fprintln(os.Stderr, "tedi:", err)
 		os.Exit(1)
 	}
 }

@@ -10,24 +10,24 @@ import (
 	"strings"
 	"time"
 
-	"termfedi/app"
-	"termfedi/auth"
-	"termfedi/config"
-	"termfedi/layer"
+	"tedi/app"
+	"tedi/auth"
+	"tedi/config"
+	"tedi/layer"
 
 	"golang.org/x/term"
 )
 
 const usage = `Usage:
-  termfedi [-config FILE]                  start the client (logs in first if needed)
-  termfedi login [-manual] [-type T] [-config FILE] [INSTANCE]
-                                           log in to a Mastodon or Misskey instance
-  termfedi logout [-config FILE]           revoke the token and forget it
-  termfedi status [-config FILE]           show which account is configured
-  termfedi config [-config FILE]           open the settings screen
+  tedi [-config FILE]           start the client (logs in first if needed)
+  tedi login [-manual] [-type T] [-config FILE] [INSTANCE]
+                                log in to a Mastodon or Misskey instance
+  tedi logout [-config FILE]    revoke the token and forget it
+  tedi status [-config FILE]    show which account is configured
+  tedi config [-config FILE]    open the settings screen
 
-Config is read from $TERMFEDI_CONFIG, ./config.json, next to the binary,
-or the user config dir (e.g. ~/.config/termfedi/config.json), in that order.
+Config is read from $TEDI_CONFIG, ./config.json, next to the binary,
+or the user config dir (e.g. ~/.config/tedi/config.json), in that order.
 `
 
 func run(args []string) error {
@@ -144,7 +144,7 @@ func logout(cfg *config.Configuration, path string) (string, error) {
 	case err == nil:
 		notice = "Token revoked on the server."
 	case errors.Is(err, auth.ErrRevokeUnsupported):
-		notice = fmt.Sprintf("Remove \"termfedi\" under Settings > Apps on %s to fully revoke access.", cfg.Session.Url)
+		notice = fmt.Sprintf("Remove \"tedi\" under Settings > Apps on %s to fully revoke access.", cfg.Session.Url)
 	default:
 		notice = fmt.Sprintf("Could not revoke the token on the server (%v). Revoke it from the authorized apps page on %s.", err, cfg.Session.Url)
 	}
@@ -186,7 +186,7 @@ func runConfig(args []string) error {
 		return err
 	}
 	if !isInteractive() {
-		return errors.New("termfedi config needs a terminal")
+		return errors.New("tedi config needs a terminal")
 	}
 
 	cfg, path, err := config.Load(*configPath)
@@ -250,7 +250,7 @@ func runStatus(args []string) error {
 	}
 	fmt.Printf("Config:   %s\n", path)
 	if !cfg.Session.LoggedIn() {
-		fmt.Println("Status:   not logged in (run `termfedi login`)")
+		fmt.Println("Status:   not logged in (run `tedi login`)")
 		return nil
 	}
 	warnPermissions(path)
@@ -263,7 +263,7 @@ func runStatus(args []string) error {
 	case err == nil:
 		fmt.Printf("Account:  @%s (token valid)\n", account)
 	case errors.Is(err, auth.ErrUnauthorized):
-		fmt.Println("Status:   token rejected by the server (run `termfedi login`)")
+		fmt.Println("Status:   token rejected by the server (run `tedi login`)")
 	default:
 		fmt.Printf("Status:   could not reach the server: %v\n", err)
 	}
@@ -276,7 +276,7 @@ func ensureSession(cfg *config.Configuration, path string) error {
 
 	if !cfg.Session.LoggedIn() {
 		if !isInteractive() {
-			return errors.New("not logged in; run `termfedi login` first")
+			return errors.New("not logged in; run `tedi login` first")
 		}
 		fmt.Println("No account configured yet. Let's log in.")
 		return login(ctx, cfg, path, auth.Options{})
@@ -297,7 +297,7 @@ func ensureSession(cfg *config.Configuration, path string) error {
 
 	case errors.Is(err, auth.ErrUnauthorized):
 		if !isInteractive() {
-			return errors.New("saved access token was rejected by the server; run `termfedi login`")
+			return errors.New("saved access token was rejected by the server; run `tedi login`")
 		}
 		fmt.Printf("The saved access token for %s was rejected (revoked or expired). Please log in again.\n", cfg.Session.Url)
 		cfg.Session.ClearCredentials()
@@ -309,7 +309,7 @@ func ensureSession(cfg *config.Configuration, path string) error {
 }
 
 func runClient(args []string) error {
-	fs, configPath := newFlagSet("termfedi")
+	fs, configPath := newFlagSet("tedi")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
