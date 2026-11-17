@@ -110,11 +110,21 @@ func (as *ActionScreen) drawNotes(screen tcell.Screen, ctx ApplicationContext) {
 
 	textStyle := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
 
-	for i, notes := range ActionTimelineNoteData {
-		if i == as.selection {
-			utils.WriteTo(screen, 0, i*as.config.UI.MaxItemHeight, " > ", textStyle)
+	screenW, screenH := screen.Size()
+	y := 0
+	for i, note := range ActionTimelineNoteData {
+		if y >= screenH-1 {
+			break
 		}
-		component.DrawNoteComponent(3, i*as.config.UI.MaxItemHeight, notes, screen, textStyle, as.config.UI.MaxItemHeight, true)
+		height := as.config.UI.MaxItemHeight
+		if as.config.UI.Layout == config.LayoutFit {
+			height = min(component.NoteHeight(note, screenW, 3, true), height)
+		}
+		if i == as.selection {
+			utils.WriteTo(screen, 0, y, " > ", textStyle)
+		}
+		component.DrawNoteComponent(3, y, note, screen, textStyle, height, true)
+		y += height
 	}
 
 	var selectedmode string

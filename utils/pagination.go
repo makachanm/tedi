@@ -12,32 +12,13 @@ type ItemAutoDemandPagination[T any] struct {
 func NewItemAutoDemandPagination[T any](max_item_limit int, max_per_page_limit int) *ItemAutoDemandPagination[T] {
 	ptk := new(ItemAutoDemandPagination[T])
 	ptk.max_item_limit = max_item_limit
-	ptk.max_item_per_page = max_per_page_limit
+	ptk.max_item_per_page = max(max_per_page_limit, 1)
 	ptk.items = make([]T, 0)
 
 	ptk.currunt_page_pointer = 0
-	ptk.total_page_count = (ptk.max_item_limit / ptk.max_item_per_page)
-	if (ptk.max_item_limit % ptk.max_item_per_page) > 0 {
-		ptk.total_page_count++
-	}
+	ptk.total_page_count = 1
 
 	return ptk
-}
-
-func (p *ItemAutoDemandPagination[T]) SetMaxItemPerPage(limit int) {
-	//must reset all pagination status
-	p.max_item_per_page = limit
-	p.total_page_count = (p.max_item_limit / p.max_item_per_page)
-	if (p.max_item_limit % p.max_item_per_page) > 0 {
-		p.total_page_count++
-	}
-
-	p.currunt_page_pointer = 0
-}
-
-func (p *ItemAutoDemandPagination[T]) Clear() {
-	p.currunt_page_pointer = 0
-	p.items = p.items[:0]
 }
 
 func (p *ItemAutoDemandPagination[T]) PutItem(item T) {
@@ -51,6 +32,8 @@ func (p *ItemAutoDemandPagination[T]) PutItem(item T) {
 	} else {
 		p.items = append(p.items, item)
 	}
+
+	p.total_page_count = max((len(p.items)+p.max_item_per_page-1)/p.max_item_per_page, 1)
 }
 
 func (p *ItemAutoDemandPagination[T]) GoPrev() {
@@ -78,24 +61,10 @@ func (p *ItemAutoDemandPagination[T]) GetCurruntPagePointer() int {
 }
 
 func (p *ItemAutoDemandPagination[T]) GetCurruntPage() []T {
-	if len(p.items) == 0 {
+	start_pos := p.currunt_page_pointer * p.max_item_per_page
+	if start_pos >= len(p.items) {
 		return make([]T, 0)
 	}
-
-	var start_pos, end_pos int
-
-	if p.currunt_page_pointer <= 0 {
-		start_pos = 0
-		end_pos = p.max_item_per_page
-	} else {
-		start_pos = (p.currunt_page_pointer * p.max_item_per_page)
-
-		if p.currunt_page_pointer >= p.total_page_count-1 {
-			end_pos = p.max_item_limit
-		} else {
-			end_pos = start_pos + p.max_item_per_page
-		}
-	}
-
+	end_pos := min(start_pos+p.max_item_per_page, len(p.items))
 	return p.items[start_pos:end_pos]
 }

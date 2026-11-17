@@ -6,7 +6,6 @@ import (
 	"termfedi/component"
 	"termfedi/config"
 	"termfedi/layer"
-	"termfedi/utils"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -15,7 +14,7 @@ import (
 const notificationRefreshInterval = 30 * time.Second
 
 type NotificationScreen struct {
-	Notifications *utils.ItemAutoDemandPagination[layer.Notification]
+	Notifications *pagedList[layer.Notification]
 	notilock      sync.Mutex
 
 	FetchLayer layer.Client
@@ -27,22 +26,25 @@ type NotificationScreen struct {
 
 func NewNotificationScreen(cfg config.Configuration, client layer.Client) *NotificationScreen {
 	ts := new(NotificationScreen)
-	ts.Notifications = utils.NewItemAutoDemandPagination[layer.Notification](40, 5)
+	ts.Notifications = newPagedList(cfg.UI, 40, func(noti layer.Notification, screenW int) int {
+		return component.NotificationHeight(noti, screenW, 0)
+	})
 	ts.FetchLayer = client
-
-	items := ts.FetchLayer.GetNotifications()
-	for _, item := range items {
-		ts.Notifications.PutItem(item)
-	}
-
 	ts.config = cfg
+
+	ts.Notifications.setItems(ts.FetchLayer.GetNotifications())
 
 	return ts
 }
 
+func (ns *NotificationScreen) resize(screen tcell.Screen) {
+	ns.notilock.Lock()
+	defer ns.notilock.Unlock()
+	ns.Notifications.resize(screen.Size())
+}
+
 func (ns *NotificationScreen) InitScene(screen tcell.Screen, ctx ApplicationContext) {
-	_, h := screen.Size()
-	ns.Notifications.SetMaxItemPerPage(int(h / ns.config.UI.MaxItemHeight))
+	ns.resize(screen)
 
 	if !ns.autoRefreshStarted {
 		ns.autoRefreshStarted = true
@@ -53,8 +55,7 @@ func (ns *NotificationScreen) InitScene(screen tcell.Screen, ctx ApplicationCont
 }
 
 func (ns *NotificationScreen) WindowChangedScene(screen tcell.Screen, ctx ApplicationContext) {
-	_, h := screen.Size()
-	ns.Notifications.SetMaxItemPerPage(int(h / ns.config.UI.MaxItemHeight))
+	ns.resize(screen)
 }
 
 func (ns *NotificationScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx ApplicationContext) {
@@ -68,17 +69,23 @@ func (ns *NotificationScreen) DoScene(screen tcell.Screen, event tcell.Event, ct
 
 		case tcell.KeyCtrlR:
 			ns.refreshData()
+			screen.Clear()
+			ns.drawNotis(screen, ctx)
 
 		case tcell.KeyCtrlN:
 			ctx.TranslateTo("main")
 
 		case tcell.KeyLeft:
-			ns.Notifications.GoPrev()
+			ns.notilock.Lock()
+			ns.Notifications.prev()
+			ns.notilock.Unlock()
 			screen.Clear()
 			ns.drawNotis(screen, ctx)
 
 		case tcell.KeyRight:
-			ns.Notifications.GoNext()
+			ns.notilock.Lock()
+			ns.Notifications.next()
+			ns.notilock.Unlock()
 			screen.Clear()
 			ns.drawNotis(screen, ctx)
 
@@ -87,21 +94,11 @@ func (ns *NotificationScreen) DoScene(screen tcell.Screen, event tcell.Event, ct
 }
 
 func (ns *NotificationScreen) refreshData() {
+	items := ns.FetchLayer.GetNotifications()
+
 	ns.notilock.Lock()
 	defer ns.notilock.Unlock()
-	currunt_pos := ns.Notifications.GetCurruntPagePointer()
-
-	ns.Notifications.Clear()
-
-	items := ns.FetchLayer.GetNotifications()
-	for _, item := range items {
-		ns.Notifications.PutItem(item)
-	}
-
-	for i := 0; i < currunt_pos; i++ {
-		ns.Notifications.GoNext()
-	}
-
+	ns.Notifications.setItems(items)
 }
 
 func (ns *NotificationScreen) autoRefresh(screen tcell.Screen, ctx ApplicationContext) {
@@ -121,12 +118,15 @@ func (ns *NotificationScreen) drawNotis(screen tcell.Screen, ctx ApplicationCont
 	defer ns.notilock.Unlock()
 	textStyle := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
 
-	items := ns.Notifications.GetCurruntPage()
-	for i, notes := range items {
-		component.DrawNotificationComponent(0, i*ns.config.UI.MaxItemHeight, notes, screen, textStyle, ns.config.UI.MaxItemHeight)
+	y := 0
+	for _, noti := range ns.Notifications.page() {
+		height := ns.Notifications.height(noti)
+		component.DrawNotificationComponent(0, y, noti, screen, textStyle, height)
+		y += height
 	}
 
-	footer := fmt.Sprintf(" Noti Page %d/%d | [Quit] C-p | [Refresh] C-r | [Back] C-n | [Prev] <- [Next] -> ", ns.Notifications.GetCurruntPagePointer()+1, ns.Notifications.GetTotalPage()+1)
+	page, total := ns.Notifications.position()
+	footer := fmt.Sprintf(" Noti Page %d/%d | [Quit] C-p | [Refresh] C-r | [Back] C-n | [Prev] <- [Next] -> ", page, total)
 
 	ctx.DrawFooterbar(footer)
 }

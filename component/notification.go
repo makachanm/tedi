@@ -21,6 +21,14 @@ func notificationLabel(t layer.NotificationType) (string, tcell.Color) {
 	}
 }
 
+func NotificationHeight(noti layer.Notification, screenW int, x int) int {
+	width := screenW - x - 2
+	if width < 10 || noti.Type == layer.NOTI_FOLLOW || noti.Content == "" {
+		return 2
+	}
+	return len(wrapLines(htmlToText(noti.Content), width-2, tcell.StyleDefault)) + 2
+}
+
 func DrawNotificationComponent(x int, y int, noti layer.Notification, ctx tcell.Screen, style tcell.Style, maxheight int) {
 	screenW, _ := ctx.Size()
 	width := screenW - x - 2

@@ -21,7 +21,8 @@ const (
 type settingsItem int
 
 const (
-	itemHeight settingsItem = iota
+	itemLayout settingsItem = iota
+	itemHeight
 	itemLogin
 	itemLogout
 	itemSave
@@ -69,7 +70,7 @@ func RunSettings(cfg config.Configuration, path string, message string) (config.
 }
 
 func (v *settingsView) items() []settingsItem {
-	items := []settingsItem{itemHeight, itemLogin}
+	items := []settingsItem{itemLayout, itemHeight, itemLogin}
 	if v.cfg.Session.LoggedIn() {
 		items = append(items, itemLogout)
 	}
@@ -82,8 +83,14 @@ func (v *settingsView) dirty() bool {
 
 func (v *settingsView) label(item settingsItem) string {
 	switch item {
+	case itemLayout:
+		return fmt.Sprintf("%-17s < %s >", "Layout", v.cfg.UI.Layout)
 	case itemHeight:
-		return fmt.Sprintf("Note height     < %2d >", v.cfg.UI.MaxItemHeight)
+		name := "Note height"
+		if v.cfg.UI.Layout == config.LayoutFit {
+			name = "Max note height"
+		}
+		return fmt.Sprintf("%-17s < %d >", name, v.cfg.UI.MaxItemHeight)
 	case itemLogin:
 		if v.cfg.Session.LoggedIn() {
 			return "Log in again"
@@ -103,6 +110,21 @@ func (v *settingsView) adjustHeight(delta int) {
 		return
 	}
 	v.cfg.UI.MaxItemHeight = h
+}
+
+func (v *settingsView) toggleLayout() {
+	if v.cfg.UI.Layout == config.LayoutFit {
+		v.cfg.UI.Layout = config.LayoutClassic
+	} else {
+		v.cfg.UI.Layout = config.LayoutFit
+	}
+}
+
+func (v *settingsView) layoutHint() string {
+	if v.cfg.UI.Layout == config.LayoutFit {
+		return "fit: each note takes only the lines it needs, up to the max height."
+	}
+	return "classic: every note takes the same fixed height."
 }
 
 func (v *settingsView) handleKey(ev *tcell.EventKey) (SettingsAction, bool) {
@@ -135,16 +157,24 @@ func (v *settingsView) handleKey(ev *tcell.EventKey) (SettingsAction, bool) {
 		}
 
 	case ev.Key() == tcell.KeyLeft || (ev.Key() == tcell.KeyRune && ev.Rune() == '-'):
-		if selected == itemHeight {
+		switch selected {
+		case itemLayout:
+			v.toggleLayout()
+		case itemHeight:
 			v.adjustHeight(-1)
 		}
 	case ev.Key() == tcell.KeyRight || (ev.Key() == tcell.KeyRune && (ev.Rune() == '+' || ev.Rune() == '=')):
-		if selected == itemHeight {
+		switch selected {
+		case itemLayout:
+			v.toggleLayout()
+		case itemHeight:
 			v.adjustHeight(1)
 		}
 
 	case ev.Key() == tcell.KeyEnter:
 		switch selected {
+		case itemLayout:
+			v.toggleLayout()
 		case itemLogin:
 			return SettingsLogin, true
 		case itemLogout:
@@ -195,9 +225,13 @@ func (v *settingsView) draw(s tcell.Screen) {
 		y++
 	}
 
+	text, style := v.message, settingsNormal
+	if text == "" && v.items()[v.cursor] == itemLayout {
+		text, style = v.layoutHint(), settingsDim
+	}
 	w, _ := s.Size()
-	for i, line := range utils.WrapText(v.message, w-6) {
-		utils.WriteTo(s, 3, y+1+i, line, settingsNormal)
+	for i, line := range utils.WrapText(text, w-6) {
+		utils.WriteTo(s, 3, y+1+i, line, style)
 	}
 
 	utils.FillLine(s, h-1, " [Up/Down] Move | [Left/Right] Change | [Enter] Select | [Esc] Quit", settingsBar)

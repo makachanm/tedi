@@ -48,6 +48,18 @@ func DrawNoteComponent(x int, y int, note layer.Note, ctx tcell.Screen, style tc
 	writeSegments(ctx, x+1, metaRow, width, []segment{{strings.Join(meta, " · "), dim}})
 }
 
+func NoteHeight(note layer.Note, screenW int, x int, viewcw bool) int {
+	width := screenW - x - 2
+	if width < 10 {
+		return 4
+	}
+	height := len(noteLines(note, viewcw, width-2, tcell.StyleDefault)) + 3
+	if note.RenotedBy != "" {
+		height++
+	}
+	return height
+}
+
 func noteLines(note layer.Note, viewcw bool, width int, style tcell.Style) []line {
 	var lines []line
 	dim := dimStyle(style)

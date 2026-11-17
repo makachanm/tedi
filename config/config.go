@@ -23,8 +23,14 @@ type Configuration struct {
 }
 
 type UIConfiguration struct {
-	MaxItemHeight int `json:"maxheight"`
+	MaxItemHeight int    `json:"maxheight"`
+	Layout        string `json:"layout"`
 }
+
+const (
+	LayoutClassic = "classic"
+	LayoutFit     = "fit"
+)
 
 type SessionConfiguration struct {
 	Type  AppType `json:"type"`
@@ -51,5 +57,8 @@ func (s *SessionConfiguration) ClearCredentials() {
 func (c *Configuration) applyDefaults() {
 	if c.UI.MaxItemHeight < ItemHeightMin {
 		c.UI.MaxItemHeight = DefaultMaxItemHeight
+	}
+	if c.UI.Layout != LayoutFit {
+		c.UI.Layout = LayoutClassic
 	}
 }
