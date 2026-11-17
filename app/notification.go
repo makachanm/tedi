@@ -59,38 +59,31 @@ func (ns *NotificationScreen) WindowChangedScene(screen tcell.Screen, ctx Applic
 }
 
 func (ns *NotificationScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx ApplicationContext) {
-	ns.drawNotis(screen, ctx)
-
-	switch ev := event.(type) {
-	case *tcell.EventKey:
-		switch ev.Key() {
-		case tcell.KeyCtrlP:
+	if ev, ok := event.(*tcell.EventKey); ok {
+		switch keyName(ev) {
+		case "q", "C-c":
 			ctx.Exit(0)
 
-		case tcell.KeyCtrlR:
+		case "r":
 			ns.refreshData()
-			screen.Clear()
-			ns.drawNotis(screen, ctx)
 
-		case tcell.KeyCtrlN:
+		case "n", "tab", "esc":
 			ctx.TranslateTo("main")
 
-		case tcell.KeyLeft:
+		case "left", "h", "pgup":
 			ns.notilock.Lock()
 			ns.Notifications.prev()
 			ns.notilock.Unlock()
-			screen.Clear()
-			ns.drawNotis(screen, ctx)
 
-		case tcell.KeyRight:
+		case "right", "l", "pgdn", " ":
 			ns.notilock.Lock()
 			ns.Notifications.next()
 			ns.notilock.Unlock()
-			screen.Clear()
-			ns.drawNotis(screen, ctx)
-
 		}
 	}
+
+	screen.Clear()
+	ns.drawNotis(screen, ctx)
 }
 
 func (ns *NotificationScreen) refreshData() {
@@ -128,7 +121,7 @@ func (ns *NotificationScreen) drawNotis(screen tcell.Screen, ctx ApplicationCont
 	page, total := ns.Notifications.position()
 	footer := footerText(ns.config.UI,
 		fmt.Sprintf("Noti Page %d/%d", page, total),
-		"[Quit] C-p | [Refresh] C-r | [Back] C-n | [Prev] <- [Next] ->")
+		"[q] Quit | [r] Refresh | [n] Back | [<-/->] Page")
 
 	ctx.DrawFooterbar(footer)
 }

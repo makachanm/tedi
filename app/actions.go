@@ -62,46 +62,61 @@ func (as *ActionScreen) InitScene(screen tcell.Screen, ctx ApplicationContext) {
 func (as *ActionScreen) WindowChangedScene(screen tcell.Screen, ctx ApplicationContext) {
 }
 
+func (as *ActionScreen) perform(mode ActionType, ctx ApplicationContext) {
+	if as.selection >= len(ActionTimelineNoteData) {
+		return
+	}
+	target := ActionTimelineNoteData[as.selection].Id
+	switch mode {
+	case REACT:
+		as.FetchLayer.PostReaction(target)
+	case RENOTE:
+		as.FetchLayer.PostRenote(target)
+	}
+	as.leave(ctx)
+}
+
 func (as *ActionScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx ApplicationContext) {
-	as.drawNotes(screen, ctx)
+	if ev, ok := event.(*tcell.EventKey); ok {
+		switch keyName(ev) {
+		case "C-c":
+			ctx.Exit(0)
+			return
 
-	switch ev := event.(type) {
-	case *tcell.EventKey:
-		switch ev.Key() {
-		case tcell.KeyCtrlX:
+		case "esc", "a", "q":
 			as.leave(ctx)
+			return
 
-		case tcell.KeyLeft:
+		case "up", "k", "left", "h":
 			if as.selection > 0 {
 				as.selection--
 			}
 
-		case tcell.KeyRight:
+		case "down", "j", "right", "l":
 			if as.selection < len(ActionTimelineNoteData)-1 {
 				as.selection++
 			}
 
-		case tcell.KeyF1:
-			as.action_mode = REACT
-
-		case tcell.KeyF2:
-			as.action_mode = RENOTE
-
-		case tcell.KeyEnter:
-			if as.selection >= len(ActionTimelineNoteData) {
-				return
+		case "tab":
+			if as.action_mode == REACT {
+				as.action_mode = RENOTE
+			} else {
+				as.action_mode = REACT
 			}
-			target := ActionTimelineNoteData[as.selection].Id
-			switch as.action_mode {
-			case REACT:
-				as.FetchLayer.PostReaction(target)
-			case RENOTE:
-				as.FetchLayer.PostRenote(target)
-			}
-			as.leave(ctx)
+
+		case "enter":
+			as.perform(as.action_mode, ctx)
+			return
+		case "f":
+			as.perform(REACT, ctx)
+			return
+		case "b":
+			as.perform(RENOTE, ctx)
+			return
 		}
 	}
 
+	as.drawNotes(screen, ctx)
 }
 
 func (as *ActionScreen) drawNotes(screen tcell.Screen, ctx ApplicationContext) {
@@ -117,7 +132,7 @@ func (as *ActionScreen) drawNotes(screen tcell.Screen, ctx ApplicationContext) {
 		}
 		height := as.config.UI.MaxItemHeight
 		if as.config.UI.Layout == config.LayoutFit {
-			height = min(component.NoteHeight(note, screenW, 3, true), height)
+			height = component.NoteHeight(note, screenW, 3, true)
 		}
 		if i == as.selection {
 			utils.WriteTo(screen, 0, y, " > ", textStyle)
@@ -137,7 +152,7 @@ func (as *ActionScreen) drawNotes(screen tcell.Screen, ctx ApplicationContext) {
 
 	footer := footerText(as.config.UI,
 		"Action Mode: "+selectedmode,
-		"[Back] C-x | [Enter] Do | [Prev] <- [Next] -> | [F1] React | [F2] Renote")
+		"[f] React | [b] Renote | [Enter] Do | [Tab] Mode | [Up/Down] Select | [Esc] Back")
 
 	ctx.DrawFooterbar(footer)
 	screen.Show()

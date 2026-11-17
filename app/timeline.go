@@ -101,67 +101,65 @@ func (ts *TimelineScreen) WindowChangedScene(screen tcell.Screen, ctx Applicatio
 	ts.resize(screen)
 }
 
+func (ts *TimelineScreen) switchTimeline(tl CurruntTL) {
+	ts.currunt_tl = tl
+	ts.refreshData()
+}
+
 func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx ApplicationContext) {
-
-	ts.drawNotes(screen, ctx)
-
-	switch ev := event.(type) {
-	case *tcell.EventKey:
-		switch ev.Key() {
-		case tcell.KeyCtrlP:
+	if ev, ok := event.(*tcell.EventKey); ok {
+		switch keyName(ev) {
+		case "q", "C-c":
 			ctx.Exit(0)
 
-		case tcell.KeyCtrlR:
+		case "r":
 			ts.refreshData()
-			screen.Clear()
-			ts.drawNotes(screen, ctx)
 
-		case tcell.KeyCtrlE:
+		case "t":
 			switch ts.currunt_tl {
-			case CURRUNTTL_GLOBAL:
-				ts.currunt_tl = CURRUNTTL_LOCAL
 			case CURRUNTTL_HOME:
-				ts.currunt_tl = CURRUNTTL_GLOBAL
+				ts.switchTimeline(CURRUNTTL_LOCAL)
 			case CURRUNTTL_LOCAL:
-				ts.currunt_tl = CURRUNTTL_HOME
+				ts.switchTimeline(CURRUNTTL_GLOBAL)
+			default:
+				ts.switchTimeline(CURRUNTTL_HOME)
 			}
-			ts.refreshData()
-			screen.Clear()
-			ts.drawNotes(screen, ctx)
+		case "1":
+			ts.switchTimeline(CURRUNTTL_HOME)
+		case "2":
+			ts.switchTimeline(CURRUNTTL_LOCAL)
+		case "3":
+			ts.switchTimeline(CURRUNTTL_GLOBAL)
 
-		case tcell.KeyCtrlQ:
+		case "c":
 			ts.timelinelock.Lock()
 			ts.showcw = !ts.showcw
 			ts.Timelines.layout()
 			ts.timelinelock.Unlock()
-			screen.Clear()
-			ts.drawNotes(screen, ctx)
 
-		case tcell.KeyCtrlX:
+		case "a", "enter":
 			ts.timelinelock.Lock()
 			insertActionTargets(ts.Timelines.page())
 			ts.timelinelock.Unlock()
 			ctx.TranslateTo("action")
 
-		case tcell.KeyCtrlN:
+		case "n", "tab":
 			ctx.TranslateTo("noti")
 
-		case tcell.KeyLeft:
+		case "left", "h", "pgup":
 			ts.timelinelock.Lock()
 			ts.Timelines.prev()
 			ts.timelinelock.Unlock()
-			screen.Clear()
-			ts.drawNotes(screen, ctx)
 
-		case tcell.KeyRight:
+		case "right", "l", "pgdn", " ":
 			ts.timelinelock.Lock()
 			ts.Timelines.next()
 			ts.timelinelock.Unlock()
-			screen.Clear()
-			ts.drawNotes(screen, ctx)
-
 		}
 	}
+
+	screen.Clear()
+	ts.drawNotes(screen, ctx)
 }
 
 func (ts *TimelineScreen) refreshData() {
@@ -199,7 +197,7 @@ func (ts *TimelineScreen) drawNotes(screen tcell.Screen, ctx ApplicationContext)
 	page, total := ts.Timelines.position()
 	footer := footerText(ts.config.UI,
 		fmt.Sprintf("%s Page %d/%d", curruntTimeline(ts.currunt_tl), page, total),
-		"[Quit] C-p | [Refresh] C-r | [ShowCW] C-q | [Notifications] C-n | [Actions] C-x | [Timeline] C-e | [Prev] <- [Next] ->")
+		"[q] Quit | [r] Refresh | [t/1-3] Timeline | [c] CW | [n] Notifications | [a] Actions | [<-/->] Page")
 
 	ctx.DrawFooterbar(footer)
 }
