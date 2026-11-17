@@ -1,28 +1,31 @@
 package layer
 
-type MisskeyNoteTransaction struct {
-	Limit int `json:"limit"`
+type MisskeyUser struct {
+	Id     string  `json:"id"`
+	Name   *string `json:"name"`
+	Finger string  `json:"username"`
+	Host   *string `json:"host"`
 }
 
-type MisskeyUser struct {
-	Name   string `json:"name"`
-	Finger string `json:"username"`
-	Host   string `json:"host"`
+type MisskeyFile struct {
+	URL string `json:"url"`
 }
 
 type MisskeyNote struct {
-	Id              string      `json:"id"`
-	Content         string      `json:"text"`
-	Spoilerwarning  *string     `json:"cw"`
-	User            MisskeyUser `json:"user"`
-	RenoteCount     int         `json:"renoteCount"`
-	FavouritesCount int         `json:"reactionCount"`
-	Visibility      string      `json:"visibility"`
+	Id             string        `json:"id"`
+	Content        *string       `json:"text"`
+	Spoilerwarning *string       `json:"cw"`
+	User           MisskeyUser   `json:"user"`
+	RenoteCount    int           `json:"renoteCount"`
+	ReactionCount  int           `json:"reactionCount"`
+	Visibility     string        `json:"visibility"`
+	Files          []MisskeyFile `json:"files"`
+	Renote         *MisskeyNote  `json:"renote,omitempty"`
 }
 
 type MisskeyNotification struct {
-	Id      string           `json:"id"`
-	Type    string           `json:"type"`
-	Account MastodonNotiUser `json:"account"`
-	Status  MastodonStatus   `json:"status,omitempty"`
+	Id   string       `json:"id"`
+	Type string       `json:"type"`
+	User *MisskeyUser `json:"user,omitempty"`
+	Note *MisskeyNote `json:"note,omitempty"`
 }
