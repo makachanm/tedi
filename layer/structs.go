@@ -1,9 +1,5 @@
 package layer
 
-import (
-	"time"
-)
-
 type Visiblity int
 type NotificationType int
 
@@ -77,7 +73,6 @@ type Note struct {
 	Author_finger string
 
 	Visiblity Visiblity
-	Time      time.Time
 
 	Spoiler string
 	Content string
@@ -95,11 +90,8 @@ type Note struct {
 type User struct {
 	Id string
 
-	User_name        string
-	User_finger      string
-	User_description string
-
-	User_desc_field map[string]string
+	User_name   string
+	User_finger string
 }
 
 type Notification struct {

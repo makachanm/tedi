@@ -13,17 +13,7 @@ import (
 	"github.com/makachanm/flogger-lib"
 )
 
-/*
-UNDER CONSTRUCTION
-ONLY TESTING PERPOSE ONLY
-*/
-
-/*
- MUST REMOVE BEFORE RELEASE
-*/
-
 type NotificationScreen struct {
-	//somethibgs brrrrr
 	Notifications *utils.ItemAutoDemandPagination[layer.Notification]
 	timelinelock  sync.RWMutex
 
@@ -104,14 +94,12 @@ func (ns *NotificationScreen) DoScene(screen tcell.Screen, event tcell.Event, ct
 			ns.Notifications.GoPrev()
 			screen.Clear()
 			ns.drawNotis(screen, ctx)
-			//ctx.RequestFullRedraw()
 
 		case tcell.KeyRight:
 			flogger.Println("NotificationScreen: Right arrow pressed, going to next page")
 			ns.Notifications.GoNext()
 			screen.Clear()
 			ns.drawNotis(screen, ctx)
-			//ctx.RequestFullRedraw()
 
 		}
 	}

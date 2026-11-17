@@ -14,6 +14,3 @@ type ApplicationContext interface {
 	DrawFooterbar(content string)
 	GetCurruntScene() string
 }
-
-type Configuration struct {
-}

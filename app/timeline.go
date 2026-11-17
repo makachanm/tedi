@@ -13,17 +13,6 @@ import (
 	"github.com/makachanm/flogger-lib"
 )
 
-/*
-UNDER CONSTRUCTION
-ONLY TESTING PERPOSE ONLY
-*/
-const INSTANCE = ""
-const TOKEN = ""
-
-/*
- MUST REMOVE BEFORE RELEASE
-*/
-
 type CurruntTL int
 
 const (
@@ -60,7 +49,6 @@ func getTimeline(layer *layer.DataFetch, tl CurruntTL) []layer.Note {
 }
 
 type TimelineScreen struct {
-	//somethibgs brrrrr
 	Timelines    *utils.ItemAutoDemandPagination[layer.Note]
 	timelinelock sync.RWMutex
 

@@ -5,7 +5,6 @@ import "time"
 type MastodonUser struct {
 	Name   string `json:"display_name"`
 	Finger string `json:"acct"`
-	Desc   string `json:"note"`
 }
 
 type MastodonMedia struct {
