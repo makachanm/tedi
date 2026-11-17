@@ -25,6 +25,7 @@ const usage = `Usage:
                                            log in to a Mastodon or Misskey instance
   termfedi logout [-config FILE]           revoke the token and forget it
   termfedi status [-config FILE]           show which account is configured
+  termfedi config [-config FILE]           open the settings screen
 
 Config is read from $TERMFEDI_CONFIG, ./config.json, next to the binary,
 or the user config dir (e.g. ~/.config/termfedi/config.json), in that order.
@@ -45,6 +46,8 @@ func run(args []string) error {
 		return runLogout(args)
 	case "status":
 		return runStatus(args)
+	case "config":
+		return runConfig(args)
 	case "help":
 		fmt.Print(usage)
 		return nil
@@ -178,6 +181,64 @@ func runLogout(args []string) error {
 	}
 	fmt.Printf("Logged out. Removed credentials from %s\n", path)
 	return nil
+}
+
+func runConfig(args []string) error {
+	fs, configPath := newFlagSet("config")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if !isInteractive() {
+		return errors.New("termfedi config needs a terminal")
+	}
+
+	cfg, path, err := config.Load(*configPath)
+	if err != nil {
+		return err
+	}
+
+	message := ""
+	for {
+		updated, action, err := app.RunSettings(cfg, path, message)
+		if err != nil {
+			return err
+		}
+		message = ""
+
+		if action == app.SettingsQuit {
+			return nil
+		}
+		if updated != cfg {
+			if err := config.Save(path, updated); err != nil {
+				return err
+			}
+			cfg = updated
+		}
+
+		switch action {
+		case app.SettingsSave:
+			fmt.Printf("Saved %s\n", path)
+			return nil
+
+		case app.SettingsLogin:
+			ctx, stop := interruptContext()
+			err := login(ctx, &cfg, path, auth.Options{})
+			stop()
+			if err != nil {
+				message = err.Error()
+			} else {
+				message = "Logged in as @" + cfg.Session.Account
+			}
+
+		case app.SettingsLogout:
+			notice, err := logout(&cfg, path)
+			if err != nil {
+				message = err.Error()
+			} else {
+				message = "Logged out. " + notice
+			}
+		}
+	}
 }
 
 func runStatus(args []string) error {
