@@ -17,31 +17,16 @@ type NotificationScreen struct {
 	Notifications *utils.ItemAutoDemandPagination[layer.Notification]
 	timelinelock  sync.RWMutex
 
-	FetchLayer layer.DataFetch
+	FetchLayer layer.Client
 
 	config config.Configuration
 }
 
-func NewNotificationScreen(cfg config.Configuration) *NotificationScreen {
+func NewNotificationScreen(cfg config.Configuration, client layer.Client) *NotificationScreen {
 	ts := new(NotificationScreen)
 	flogger.Println("Initializing NotificationScreen")
 	ts.Notifications = utils.NewItemAutoDemandPagination[layer.Notification](40, 5)
-
-	var vlayer layer.FetchActionBase
-	switch cfg.Session.Type {
-	case config.Mastodon:
-		flogger.Println("Using Mastodon layer")
-		vlayer = layer.NewMastodonFetch(cfg.Session.Token, cfg.Session.Url)
-
-	case config.Misskey:
-		flogger.Println("Using Misskey layer")
-		vlayer = layer.NewMisskeyFetch(cfg.Session.Token, cfg.Session.Url)
-
-	default:
-		panic("session type invalid")
-
-	}
-	ts.FetchLayer = layer.NewDataFetchAction(vlayer)
+	ts.FetchLayer = client
 
 	items := ts.FetchLayer.GetNotifications()
 	flogger.Printf("Fetched %d notifications", len(items))

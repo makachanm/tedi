@@ -16,20 +16,14 @@ type MastodonFetch struct {
 	instance_url *url.URL
 }
 
-func NewMastodonFetch(token string, insurl string) *MastodonFetch {
-	var err error
+func NewMastodonFetch(token string, insurl string) (*MastodonFetch, error) {
 	flogger.Printf("Initializing MastodonFetch for instance %s", insurl)
 
-	mastodon := new(MastodonFetch)
-	mastodon.instance_url, err = url.Parse(insurl)
-	mastodon.token = token
-
+	u, err := url.Parse(insurl)
 	if err != nil {
-		flogger.Errorf("Failed to parse instance url: %v", err)
-		panic(err)
+		return nil, fmt.Errorf("invalid instance url %q: %w", insurl, err)
 	}
-
-	return mastodon
+	return &MastodonFetch{token: token, instance_url: u}, nil
 }
 
 func (m *MastodonFetch) getData(method string, path string, data interface{}, authneed bool, hasdata bool) ([]byte, error) {

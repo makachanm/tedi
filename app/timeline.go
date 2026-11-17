@@ -34,7 +34,7 @@ func curruntTimeline(tl CurruntTL) string {
 	}
 }
 
-func getTimeline(layer *layer.DataFetch, tl CurruntTL) []layer.Note {
+func getTimeline(layer layer.Client, tl CurruntTL) []layer.Note {
 	flogger.Printf("Getting timeline: %s", curruntTimeline(tl))
 	switch tl {
 	case CURRUNTTL_GLOBAL:
@@ -52,37 +52,27 @@ type TimelineScreen struct {
 	Timelines    *utils.ItemAutoDemandPagination[layer.Note]
 	timelinelock sync.RWMutex
 
-	FetchLayer layer.DataFetch
+	FetchLayer layer.Client
 	currunt_tl CurruntTL
 
 	config config.Configuration
 	showcw bool
 }
 
-func NewTimelineScreen(cfg config.Configuration) *TimelineScreen {
+func NewTimelineScreen(cfg config.Configuration, client layer.Client) *TimelineScreen {
 	ts := new(TimelineScreen)
 	flogger.Println("Initializing TimelineScreen")
 
-	var vlayer layer.FetchActionBase
 	switch cfg.Session.Type {
-	case config.Mastodon:
-		flogger.Println("Using Mastodon layer")
-		vlayer = layer.NewMastodonFetch(cfg.Session.Token, cfg.Session.Url)
-		ts.Timelines = utils.NewItemAutoDemandPagination[layer.Note](40, 5)
-
 	case config.Misskey:
-		flogger.Println("Using Misskey layer")
-		vlayer = layer.NewMisskeyFetch(cfg.Session.Token, cfg.Session.Url)
 		ts.Timelines = utils.NewItemAutoDemandPagination[layer.Note](100, 5)
-
 	default:
-		panic("session type invalid")
-
+		ts.Timelines = utils.NewItemAutoDemandPagination[layer.Note](40, 5)
 	}
-	ts.FetchLayer = layer.NewDataFetchAction(vlayer)
+	ts.FetchLayer = client
 
 	ts.currunt_tl = CURRUNTTL_HOME
-	items := getTimeline(&ts.FetchLayer, ts.currunt_tl)
+	items := getTimeline(ts.FetchLayer, ts.currunt_tl)
 	flogger.Printf("Fetched %d items from timeline", len(items))
 	for _, item := range items {
 		ts.Timelines.PutItem(item)
@@ -184,7 +174,7 @@ func (ts *TimelineScreen) refreshData() {
 
 	ts.Timelines.Clear()
 
-	items := getTimeline(&ts.FetchLayer, ts.currunt_tl)
+	items := getTimeline(ts.FetchLayer, ts.currunt_tl)
 	flogger.Printf("TimelineScreen: fetched %d new items", len(items))
 	for _, item := range items {
 		ts.Timelines.PutItem(item)

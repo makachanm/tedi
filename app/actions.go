@@ -35,32 +35,17 @@ const (
 )
 
 type ActionScreen struct {
-	FetchLayer layer.DataFetch
+	FetchLayer layer.Client
 
 	config      config.Configuration
 	action_mode ActionType
 	selection   int
 }
 
-func NewActionScreen(cfg config.Configuration) *ActionScreen {
+func NewActionScreen(cfg config.Configuration, client layer.Client) *ActionScreen {
 	as := new(ActionScreen)
 	flogger.Println("Initializing ActionScreen")
-
-	var vlayer layer.FetchActionBase
-	switch cfg.Session.Type {
-	case config.Mastodon:
-		flogger.Println("Using Mastodon layer")
-		vlayer = layer.NewMastodonFetch(cfg.Session.Token, cfg.Session.Url)
-
-	case config.Misskey:
-		flogger.Println("Using Misskey layer")
-		vlayer = layer.NewMisskeyFetch(cfg.Session.Token, cfg.Session.Url)
-
-	default:
-		panic("session type invalid")
-
-	}
-	as.FetchLayer = layer.NewDataFetchAction(vlayer)
+	as.FetchLayer = client
 
 	as.action_mode = REACT
 	as.config = cfg

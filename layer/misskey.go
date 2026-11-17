@@ -14,18 +14,12 @@ type MisskeyFetch struct {
 	instance_url *url.URL
 }
 
-func NewMisskeyFetch(token string, insurl string) *MisskeyFetch {
-	var err error
-
-	misskey := new(MisskeyFetch)
-	misskey.instance_url, err = url.Parse(insurl)
-	misskey.token = token
-
+func NewMisskeyFetch(token string, insurl string) (*MisskeyFetch, error) {
+	u, err := url.Parse(insurl)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("invalid instance url %q: %w", insurl, err)
 	}
-
-	return misskey
+	return &MisskeyFetch{token: token, instance_url: u}, nil
 }
 
 func (m *MisskeyFetch) getData(path string, data interface{}, authneed bool, hasdata bool) []byte {
