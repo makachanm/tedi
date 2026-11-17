@@ -139,7 +139,7 @@ func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Ap
 
 		case "a", "enter":
 			ts.timelinelock.Lock()
-			insertActionTargets(ts.Timelines.page())
+			insertActionTargets(ts.Timelines.GetCurruntPage())
 			ts.timelinelock.Unlock()
 			ctx.TranslateTo("action")
 
@@ -148,12 +148,12 @@ func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Ap
 
 		case "left", "h", "pgup":
 			ts.timelinelock.Lock()
-			ts.Timelines.prev()
+			ts.Timelines.GoPrev()
 			ts.timelinelock.Unlock()
 
 		case "right", "l", "pgdn", " ":
 			ts.timelinelock.Lock()
-			ts.Timelines.next()
+			ts.Timelines.GoNext()
 			ts.timelinelock.Unlock()
 		}
 	}
@@ -188,13 +188,13 @@ func (ts *TimelineScreen) drawNotes(screen tcell.Screen, ctx ApplicationContext)
 	textStyle := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
 
 	y := 0
-	for _, note := range ts.Timelines.page() {
+	for _, note := range ts.Timelines.GetCurruntPage() {
 		height := ts.Timelines.height(note)
 		component.DrawNoteComponent(0, y, note, screen, textStyle, height, ts.showcw)
 		y += height
 	}
 
-	page, total := ts.Timelines.position()
+	page, total := ts.Timelines.GetCurruntPagePointer()+1, ts.Timelines.GetTotalPage()+1
 	footer := footerText(ts.config.UI,
 		fmt.Sprintf("%s Page %d/%d", curruntTimeline(ts.currunt_tl), page, total),
 		"[q] Quit | [r] Refresh | [t/1-3] Timeline | [c] CW | [n] Notifications | [a] Actions | [<-/->] Page")

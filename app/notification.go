@@ -72,12 +72,12 @@ func (ns *NotificationScreen) DoScene(screen tcell.Screen, event tcell.Event, ct
 
 		case "left", "h", "pgup":
 			ns.notilock.Lock()
-			ns.Notifications.prev()
+			ns.Notifications.GoPrev()
 			ns.notilock.Unlock()
 
 		case "right", "l", "pgdn", " ":
 			ns.notilock.Lock()
-			ns.Notifications.next()
+			ns.Notifications.GoNext()
 			ns.notilock.Unlock()
 		}
 	}
@@ -112,13 +112,13 @@ func (ns *NotificationScreen) drawNotis(screen tcell.Screen, ctx ApplicationCont
 	textStyle := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
 
 	y := 0
-	for _, noti := range ns.Notifications.page() {
+	for _, noti := range ns.Notifications.GetCurruntPage() {
 		height := ns.Notifications.height(noti)
 		component.DrawNotificationComponent(0, y, noti, screen, textStyle, height)
 		y += height
 	}
 
-	page, total := ns.Notifications.position()
+	page, total := ns.Notifications.GetCurruntPagePointer()+1, ns.Notifications.GetTotalPage()+1
 	footer := footerText(ns.config.UI,
 		fmt.Sprintf("Noti Page %d/%d", page, total),
 		"[q] Quit | [r] Refresh | [n] Back | [<-/->] Page")
