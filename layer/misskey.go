@@ -93,9 +93,8 @@ func (n *MisskeyNote) toNote() Note {
 	return note
 }
 
-func (m *MisskeyFetch) timeline(path string) []Note {
+func (m *MisskeyFetch) timeline(path string, body map[string]any) []Note {
 	var notes []Note
-	body := map[string]any{}
 	for len(notes) < m.limit {
 		page := min(m.limit-len(notes), misskeyPage)
 		body["limit"] = page
@@ -121,15 +120,15 @@ func (m *MisskeyFetch) timeline(path string) []Note {
 }
 
 func (m *MisskeyFetch) GetGlobalTimeline() []Note {
-	return m.timeline("api/notes/global-timeline")
+	return m.timeline("api/notes/global-timeline", map[string]any{})
 }
 
 func (m *MisskeyFetch) GetLocalTimeline() []Note {
-	return m.timeline("api/notes/local-timeline")
+	return m.timeline("api/notes/local-timeline", map[string]any{})
 }
 
 func (m *MisskeyFetch) GetHomeTimeline() []Note {
-	return m.timeline("api/notes/timeline")
+	return m.timeline("api/notes/timeline", map[string]any{})
 }
 
 func misskeyNotiTypeToValue(s string) NotificationType {
@@ -260,4 +259,37 @@ func (m *MisskeyFetch) GetThread(note_id string) ([]Note, []Note, error) {
 		}
 	}
 	return ancestors, descendants, nil
+}
+
+func (m *MisskeyFetch) GetProfile() (Profile, error) {
+	d, err := m.request("api/i", map[string]any{})
+	if err != nil {
+		return Profile{}, err
+	}
+
+	var acct MisskeyAccount
+	if err := json.Unmarshal(d, &acct); err != nil {
+		return Profile{}, fmt.Errorf("decode profile: %w", err)
+	}
+
+	finger := acct.finger()
+	if acct.Host == nil {
+		finger += "@" + m.instance_url.Host
+	}
+	profile := Profile{
+		Id:             acct.Id,
+		Name:           acct.displayName(),
+		Finger:         finger,
+		NotesCount:     acct.NotesCount,
+		FollowingCount: acct.FollowingCount,
+		FollowersCount: acct.FollowersCount,
+	}
+	if acct.Description != nil {
+		profile.Bio = *acct.Description
+	}
+	return profile, nil
+}
+
+func (m *MisskeyFetch) GetUserNotes(user_id string) []Note {
+	return m.timeline("api/users/notes", map[string]any{"userId": user_id})
 }

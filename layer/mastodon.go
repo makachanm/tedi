@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -210,4 +211,34 @@ func (m *MastodonFetch) GetThread(note_id string) ([]Note, []Note, error) {
 		descendants = append(descendants, mctx.Descendants[i].toNote())
 	}
 	return ancestors, descendants, nil
+}
+
+func (m *MastodonFetch) GetProfile() (Profile, error) {
+	d, err := m.request(http.MethodGet, "api/v1/accounts/verify_credentials", nil)
+	if err != nil {
+		return Profile{}, err
+	}
+
+	var acct MastodonAccount
+	if err := json.Unmarshal(d, &acct); err != nil {
+		return Profile{}, fmt.Errorf("decode profile: %w", err)
+	}
+
+	finger := acct.Acct
+	if !strings.Contains(finger, "@") {
+		finger += "@" + m.instance_url.Host
+	}
+	return Profile{
+		Id:             acct.Id,
+		Name:           acct.DisplayName,
+		Finger:         finger,
+		Bio:            acct.Note,
+		NotesCount:     acct.StatusesCount,
+		FollowingCount: acct.FollowingCount,
+		FollowersCount: acct.FollowersCount,
+	}, nil
+}
+
+func (m *MastodonFetch) GetUserNotes(user_id string) []Note {
+	return m.timeline("api/v1/accounts/"+url.PathEscape(user_id)+"/statuses", url.Values{})
 }

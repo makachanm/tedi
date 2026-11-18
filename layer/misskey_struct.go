@@ -35,3 +35,11 @@ type MisskeyNotification struct {
 	User      *MisskeyUser `json:"user,omitempty"`
 	Note      *MisskeyNote `json:"note,omitempty"`
 }
+
+type MisskeyAccount struct {
+	MisskeyUser
+	Description    *string `json:"description"`
+	NotesCount     int     `json:"notesCount"`
+	FollowingCount int     `json:"followingCount"`
+	FollowersCount int     `json:"followersCount"`
+}

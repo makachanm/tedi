@@ -16,6 +16,9 @@ type Client interface {
 	GetNote(note_id string) (Note, error)
 	GetThread(note_id string) ([]Note, []Note, error)
 
+	GetProfile() (Profile, error)
+	GetUserNotes(user_id string) []Note
+
 	PostRenote(note_id string) bool
 	PostReaction(note_id string) bool
 }

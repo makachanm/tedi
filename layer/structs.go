@@ -104,3 +104,14 @@ type Notification struct {
 	NoteId      string
 	ReactedUser User
 }
+
+type Profile struct {
+	Id     string
+	Name   string
+	Finger string
+	Bio    string
+
+	NotesCount     int
+	FollowingCount int
+	FollowersCount int
+}

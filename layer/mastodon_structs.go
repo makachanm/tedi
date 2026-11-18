@@ -49,3 +49,13 @@ type MastodonStatus struct {
 	Id       string `json:"id"`
 	Contents string `json:"content"`
 }
+
+type MastodonAccount struct {
+	Id             string `json:"id"`
+	DisplayName    string `json:"display_name"`
+	Acct           string `json:"acct"`
+	Note           string `json:"note"`
+	StatusesCount  int    `json:"statuses_count"`
+	FollowingCount int    `json:"following_count"`
+	FollowersCount int    `json:"followers_count"`
+}
