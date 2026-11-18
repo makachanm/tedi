@@ -104,8 +104,8 @@ func (hs *HelpScreen) draw(screen tcell.Screen, ctx ApplicationContext) {
 		keyW = max(keyW, len(e.key))
 	}
 	for i, e := range hs.keys {
-		utils.WriteTo(screen, 4, 3+i, e.key, normal)
-		utils.WriteTo(screen, 4+keyW+3, 3+i, e.desc, dim)
+		utils.WriteTo(screen, 2, 3+i, e.key, normal)
+		utils.WriteTo(screen, 2+keyW+3, 3+i, e.desc, dim)
 	}
 
 	ctx.DrawFooterbar(" Help · " + hs.title + " | [Esc] Back")
