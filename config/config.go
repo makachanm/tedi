@@ -39,16 +39,33 @@ const (
 type SessionConfiguration struct {
 	Type  AppType `json:"type"`
 	Url   string  `json:"instance_url"`
-	Token string  `json:"access_token"`
+	Token string  `json:"access_token,omitempty"`
 
 	ClientID     string `json:"client_id,omitempty"`
 	ClientSecret string `json:"client_secret,omitempty"`
 
 	Account string `json:"account,omitempty"`
+
+	CredentialID string `json:"credential_id,omitempty"`
 }
 
 func (s SessionConfiguration) LoggedIn() bool {
 	return s.Type.Valid() && s.Url != "" && s.Token != ""
+}
+
+func (s SessionConfiguration) InKeyring() bool {
+	return s.CredentialID != ""
+}
+
+func (s SessionConfiguration) CredentialLocation() string {
+	switch {
+	case s.InKeyring():
+		return "system keyring"
+	case s.Token != "":
+		return "config file"
+	default:
+		return "none"
+	}
 }
 
 func (s *SessionConfiguration) ClearCredentials() {

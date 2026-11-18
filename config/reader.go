@@ -7,6 +7,8 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+
+	"github.com/zalando/go-keyring"
 )
 
 const fileName = "config.json"
@@ -59,6 +61,19 @@ func Load(explicitPath string) (Configuration, string, error) {
 			return Configuration{}, p, fmt.Errorf("config %s: unknown session type %q (expected %q or %q)", p, cfg.Session.Type, Mastodon, Misskey)
 		}
 		cfg.applyDefaults()
+
+		if cfg.Session.InKeyring() {
+			err := readSecret(&cfg.Session)
+			switch {
+			case errors.Is(err, keyring.ErrNotFound):
+				cfg.Session.CredentialID = ""
+				cfg.Session.ClearCredentials()
+			case err != nil:
+				return Configuration{}, p, fmt.Errorf("read access token from the system keyring: %w", err)
+			}
+		} else if cfg.Session.Token != "" {
+			Save(p, &cfg)
+		}
 		return cfg, p, nil
 	}
 
@@ -83,8 +98,27 @@ func InsecurePermissions(path string) bool {
 	return info.Mode().Perm()&0o077 != 0
 }
 
-func Save(path string, cfg Configuration) error {
-	data, err := json.MarshalIndent(cfg, "", "    ")
+func Save(path string, cfg *Configuration) error {
+	s := &cfg.Session
+	switch {
+	case s.Token != "" || s.ClientSecret != "":
+		if err := writeSecret(s); err != nil && s.InKeyring() {
+			return fmt.Errorf("store access token in the system keyring: %w", err)
+		}
+	case s.InKeyring():
+		if err := deleteSecret(s.CredentialID); err != nil {
+			return fmt.Errorf("remove access token from the system keyring: %w", err)
+		}
+		s.CredentialID = ""
+	}
+
+	disk := *cfg
+	if disk.Session.InKeyring() {
+		disk.Session.Token = ""
+		disk.Session.ClientSecret = ""
+	}
+
+	data, err := json.MarshalIndent(disk, "", "    ")
 	if err != nil {
 		return err
 	}

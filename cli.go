@@ -75,8 +75,8 @@ func isInteractive() bool {
 	return term.IsTerminal(int(os.Stdin.Fd())) && term.IsTerminal(int(os.Stdout.Fd()))
 }
 
-func warnPermissions(path string) {
-	if config.InsecurePermissions(path) {
+func warnPermissions(cfg config.Configuration, path string) {
+	if !cfg.Session.InKeyring() && cfg.Session.Token != "" && config.InsecurePermissions(path) {
 		fmt.Fprintf(os.Stderr, "warning: %s contains an access token but is readable by other users; run: chmod 600 %s\n", path, path)
 	}
 }
@@ -100,11 +100,17 @@ func login(ctx context.Context, cfg *config.Configuration, path string, opts aut
 		auth.Revoke(ctx, old)
 	}
 
+	session.CredentialID = cfg.Session.CredentialID
 	cfg.Session = session
-	if err := config.Save(path, *cfg); err != nil {
+	if err := config.Save(path, cfg); err != nil {
 		return err
 	}
-	fmt.Printf("Logged in as @%s. Saved to %s\n", session.Account, path)
+	fmt.Printf("Logged in as @%s.\n", session.Account)
+	if cfg.Session.InKeyring() {
+		fmt.Printf("Token stored in the system keyring; settings saved to %s\n", path)
+	} else {
+		fmt.Printf("No system keyring available; token stored in %s (mode 600)\n", path)
+	}
 	return nil
 }
 
@@ -154,7 +160,7 @@ func logout(cfg *config.Configuration, path string) (string, error) {
 	}
 
 	cfg.Session.ClearCredentials()
-	if err := config.Save(path, *cfg); err != nil {
+	if err := config.Save(path, cfg); err != nil {
 		return notice, err
 	}
 	return notice, nil
@@ -210,7 +216,7 @@ func runConfig(args []string) error {
 			return nil
 		}
 		if updated != cfg {
-			if err := config.Save(path, updated); err != nil {
+			if err := config.Save(path, &updated); err != nil {
 				return err
 			}
 			cfg = updated
@@ -257,8 +263,9 @@ func runStatus(args []string) error {
 		fmt.Println("Status:   not logged in (run `tedi login`)")
 		return nil
 	}
-	warnPermissions(path)
+	warnPermissions(cfg, path)
 	fmt.Printf("Instance: %s (%s)\n", cfg.Session.Url, cfg.Session.Type)
+	fmt.Printf("Token:    %s\n", cfg.Session.CredentialLocation())
 
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
@@ -286,7 +293,7 @@ func ensureSession(cfg *config.Configuration, path string) error {
 		return login(ctx, cfg, path, auth.Options{})
 	}
 
-	warnPermissions(path)
+	warnPermissions(*cfg, path)
 
 	vctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
@@ -295,7 +302,7 @@ func ensureSession(cfg *config.Configuration, path string) error {
 	case err == nil:
 		if account != cfg.Session.Account {
 			cfg.Session.Account = account
-			config.Save(path, *cfg)
+			config.Save(path, cfg)
 		}
 		return nil
 

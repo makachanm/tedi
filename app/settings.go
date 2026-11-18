@@ -224,7 +224,12 @@ func (v *settingsView) draw(s tcell.Screen) {
 	}
 
 	y := 1
-	for _, row := range [][2]string{{"Account", account}, {"Server", server}, {"File", v.path}} {
+	rows := [][2]string{{"Account", account}, {"Server", server}}
+	if v.cfg.Session.LoggedIn() {
+		rows = append(rows, [2]string{"Token", v.cfg.Session.CredentialLocation()})
+	}
+	rows = append(rows, [2]string{"File", v.path})
+	for _, row := range rows {
 		utils.WriteTo(s, 3, y, row[0], settingsDim)
 		utils.WriteTo(s, 13, y, row[1], settingsNormal)
 		y++

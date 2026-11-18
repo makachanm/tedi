@@ -27,6 +27,7 @@ tedi
 `tedi logout` revokes the token.
 
 Settings are saved to `~/.config/tedi/config.json`.
+The access token is kept in the system keyring (Secret Service, Keychain, Credential Manager) when one is available, and in the config file (mode 600) otherwise.
 
 ## Keys
 | Key | Timeline | Notifications | Actions |
