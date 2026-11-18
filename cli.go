@@ -347,8 +347,10 @@ func runClient(args []string) error {
 		return err
 	}
 
-	m.RegisterScene("main", app.NewTimelineScreen(cfg, client))
-	m.RegisterScene("noti", app.NewNotificationScreen(cfg, client))
+	detail := app.NewNoteScreen(cfg, client)
+	m.RegisterScene("main", app.NewTimelineScreen(cfg, client, detail))
+	m.RegisterScene("noti", app.NewNotificationScreen(cfg, client, detail))
+	m.RegisterScene("note", detail)
 	m.Mainloop()
 	return nil
 }

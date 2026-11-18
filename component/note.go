@@ -75,7 +75,7 @@ func noteLines(note layer.Note, viewcw bool, width int, style tcell.Style) []lin
 		}
 	}
 
-	lines = append(lines, wrapLines(htmlToText(note.Content), width, style)...)
+	lines = append(lines, wrapLines(htmlToText(note.Content, false), width, style)...)
 	for _, media := range note.Medias {
 		lines = append(lines, line{utils.Truncate("[media] "+media, width), dim})
 	}

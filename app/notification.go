@@ -19,18 +19,20 @@ type NotificationScreen struct {
 	notilock      sync.Mutex
 
 	FetchLayer layer.Client
+	detail     *NoteScreen
 
 	config config.Configuration
 
 	autoRefreshStarted bool
 }
 
-func NewNotificationScreen(cfg config.Configuration, client layer.Client) *NotificationScreen {
+func NewNotificationScreen(cfg config.Configuration, client layer.Client, detail *NoteScreen) *NotificationScreen {
 	ts := new(NotificationScreen)
 	ts.Notifications = newPagedList(cfg.UI, 40, func(noti layer.Notification, screenW int) int {
 		return component.NotificationHeight(noti, screenW, 3)
 	})
 	ts.FetchLayer = client
+	ts.detail = detail
 	ts.config = cfg
 
 	ts.Notifications.setItems(ts.FetchLayer.GetNotifications())
@@ -68,8 +70,19 @@ func (ns *NotificationScreen) DoScene(screen tcell.Screen, event tcell.Event, ct
 		case "m":
 			ns.refreshData()
 
-		case "tab", "esc":
+		case "esc":
 			ctx.TranslateTo("main")
+			return
+
+		case "enter":
+			ns.notilock.Lock()
+			noti, ok := ns.Notifications.selected()
+			ns.notilock.Unlock()
+			if ok && noti.NoteId != "" {
+				ns.detail.open(layer.Note{Id: noti.NoteId, Content: noti.Content}, "noti")
+				ctx.TranslateTo("note")
+				return
+			}
 
 		case "up", "k":
 			ns.notilock.Lock()
@@ -135,7 +148,7 @@ func (ns *NotificationScreen) drawNotis(screen tcell.Screen, ctx ApplicationCont
 	page, total := ns.Notifications.GetCurruntPagePointer()+1, ns.Notifications.GetTotalPage()+1
 	footer := footerText(ns.config.UI,
 		fmt.Sprintf("Noti Page %d/%d", page, total),
-		"[Tab/Esc] Back | [m] Refresh | [Up/Down] Select | [<-/->] Page")
+		"[Esc] Back | [Enter] Open | [m] Refresh | [Up/Down] Select | [<-/->] Page")
 
 	ctx.DrawFooterbar(footer)
 }

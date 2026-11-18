@@ -85,7 +85,7 @@ const (
 	spanEllipsis
 )
 
-func htmlToText(src string) string {
+func htmlToText(src string, full bool) string {
 	z := html.NewTokenizer(strings.NewReader(src))
 	var b strings.Builder
 	var spans []int
@@ -122,6 +122,9 @@ func htmlToText(src string) string {
 							kind = spanEllipsis
 						}
 					}
+				}
+				if full {
+					kind = spanNormal
 				}
 				spans = append(spans, kind)
 				if kind == spanInvisible {

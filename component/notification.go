@@ -26,7 +26,7 @@ func NotificationHeight(noti layer.Notification, screenW int, x int) int {
 	if width < 10 || noti.Type == layer.NOTI_FOLLOW || noti.Content == "" {
 		return 2
 	}
-	return len(wrapLines(htmlToText(noti.Content), width-2, tcell.StyleDefault)) + 2
+	return len(wrapLines(htmlToText(noti.Content, false), width-2, tcell.StyleDefault)) + 2
 }
 
 func DrawNotificationComponent(x int, y int, noti layer.Notification, ctx tcell.Screen, style tcell.Style, maxheight int) {
@@ -54,6 +54,6 @@ func DrawNotificationComponent(x int, y int, noti layer.Notification, ctx tcell.
 	if noti.Type != layer.NOTI_MENTION {
 		bodyStyle = dimStyle(style)
 	}
-	lines := wrapLines(htmlToText(noti.Content), width-2, bodyStyle)
+	lines := wrapLines(htmlToText(noti.Content, false), width-2, bodyStyle)
 	drawBody(ctx, x+1, y+1, maxheight-2, width-2, lines, style)
 }

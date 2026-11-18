@@ -54,6 +54,7 @@ type TimelineScreen struct {
 
 	FetchLayer layer.Client
 	currunt_tl CurruntTL
+	detail     *NoteScreen
 
 	config config.Configuration
 	showcw bool
@@ -62,7 +63,7 @@ type TimelineScreen struct {
 	autoRefreshStarted bool
 }
 
-func NewTimelineScreen(cfg config.Configuration, client layer.Client) *TimelineScreen {
+func NewTimelineScreen(cfg config.Configuration, client layer.Client, detail *NoteScreen) *TimelineScreen {
 	ts := new(TimelineScreen)
 
 	limit := 40
@@ -73,6 +74,7 @@ func NewTimelineScreen(cfg config.Configuration, client layer.Client) *TimelineS
 		return component.NoteHeight(note, screenW, 3, ts.showcw)
 	})
 	ts.FetchLayer = client
+	ts.detail = detail
 	ts.config = cfg
 	ts.showcw = false
 
@@ -149,8 +151,19 @@ func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Ap
 				ts.notice = actOnNote(ts.FetchLayer, note, keyName(ev) == "x")
 			}
 
+		case "enter":
+			ts.timelinelock.Lock()
+			note, ok := ts.Timelines.selected()
+			ts.timelinelock.Unlock()
+			if ok {
+				ts.detail.open(note, "main")
+				ctx.TranslateTo("note")
+				return
+			}
+
 		case "tab":
 			ctx.TranslateTo("noti")
+			return
 
 		case "left", "h", "pgup":
 			ts.timelinelock.Lock()
@@ -209,7 +222,7 @@ func (ts *TimelineScreen) drawNotes(screen tcell.Screen, ctx ApplicationContext)
 		info += " · " + ts.notice
 	}
 	footer := footerText(ts.config.UI, info,
-		"[Esc] Quit | [m] Refresh | [Tab] Notifications | [x] React | [c] Renote | [Up/Down] Select | [<-/->] Page | [1-3] Timeline | [z] CW")
+		"[Esc] Quit | [Enter] Open | [m] Refresh | [Tab] Notifications | [x] React | [c] Renote | [Up/Down] Select | [<-/->] Page | [1-3] Timeline | [z] CW")
 
 	ctx.DrawFooterbar(footer)
 }

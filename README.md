@@ -30,13 +30,14 @@ Settings are saved to `~/.config/tedi/config.json`.
 The access token is kept in the system keyring (Secret Service, Keychain, Credential Manager) when one is available, and in the config file (mode 600) otherwise.
 
 ## Keys
-| Key | Timeline | Notifications |
-|---|---|---|
-| `Esc` | quit | back |
-| `Tab` | notifications | back |
-| `x` / `c` | react / renote selected note | |
-| `m` | refresh | refresh |
-| `1` `2` `3` | home / local / global timeline | |
-| `z` | show CW | |
-| `↑` `↓` / `j` `k` | select | select |
-| `←` `→` / `h` `l` | page | page |
+| Key | Timeline | Notifications | Note |
+|---|---|---|---|
+| `Esc` | quit | back | back |
+| `Enter` | open note | open note | |
+| `Tab` | notifications | | |
+| `x` / `c` | react / renote | | react / renote |
+| `m` | refresh | refresh | |
+| `1` `2` `3` | home / local / global timeline | | |
+| `z` | show CW | | |
+| `↑` `↓` / `j` `k` | select | select | scroll |
+| `←` `→` / `h` `l` | page | page | page |
