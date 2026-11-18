@@ -112,10 +112,10 @@ func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Ap
 	if ev, ok := event.(*tcell.EventKey); ok {
 		ts.notice = ""
 		switch keyName(ev) {
-		case "q", "C-c":
+		case "esc", "C-c":
 			ctx.Exit(0)
 
-		case "r":
+		case "m":
 			ts.refreshData()
 
 		case "t":
@@ -134,7 +134,7 @@ func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Ap
 		case "3":
 			ts.switchTimeline(CURRUNTTL_GLOBAL)
 
-		case "c":
+		case "v":
 			ts.timelinelock.Lock()
 			ts.showcw = !ts.showcw
 			ts.Timelines.layout()
@@ -156,12 +156,12 @@ func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Ap
 			ts.Timelines.moveCursor(1)
 			ts.timelinelock.Unlock()
 
-		case "f", "b":
+		case "x", "c":
 			ts.timelinelock.Lock()
 			note, ok := ts.Timelines.selected()
 			ts.timelinelock.Unlock()
 			if ok {
-				ts.notice = actOnNote(ts.FetchLayer, note, keyName(ev) == "f")
+				ts.notice = actOnNote(ts.FetchLayer, note, keyName(ev) == "x")
 			}
 
 		case "n", "tab":
@@ -224,7 +224,7 @@ func (ts *TimelineScreen) drawNotes(screen tcell.Screen, ctx ApplicationContext)
 		info += " · " + ts.notice
 	}
 	footer := footerText(ts.config.UI, info,
-		"[q] Quit | [r] Refresh | [t/1-3] Timeline | [c] CW | [n] Notifications | [Up/Down] Select | [f] React | [b] Renote | [a] Actions | [<-/->] Page")
+		"[Esc] Quit | [m] Refresh | [n] Notifications | [x] React | [c] Renote | [a] Actions | [Up/Down] Select | [<-/->] Page | [t/1-3] Timeline | [v] CW")
 
 	ctx.DrawFooterbar(footer)
 }

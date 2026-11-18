@@ -99,7 +99,7 @@ func (as *ActionScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Appl
 			ctx.Exit(0)
 			return
 
-		case "esc", "a", "q":
+		case "esc", "a":
 			as.leave(ctx)
 			return
 
@@ -123,10 +123,10 @@ func (as *ActionScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Appl
 		case "enter":
 			as.perform(as.action_mode, ctx)
 			return
-		case "f":
+		case "x":
 			as.perform(REACT, ctx)
 			return
-		case "b":
+		case "c":
 			as.perform(RENOTE, ctx)
 			return
 		}
@@ -168,7 +168,7 @@ func (as *ActionScreen) drawNotes(screen tcell.Screen, ctx ApplicationContext) {
 
 	footer := footerText(as.config.UI,
 		"Action Mode: "+selectedmode,
-		"[f] React | [b] Renote | [Enter] Do | [Tab] Mode | [Up/Down] Select | [Esc] Back")
+		"[Esc] Back | [x] React | [c] Renote | [Enter] Do | [Tab] Mode | [Up/Down] Select")
 
 	ctx.DrawFooterbar(footer)
 	screen.Show()

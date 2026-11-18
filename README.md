@@ -32,14 +32,13 @@ The access token is kept in the system keyring (Secret Service, Keychain, Creden
 ## Keys
 | Key | Timeline | Notifications | Actions |
 |---|---|---|---|
-| `q` | quit | quit | back |
-| `r` | refresh | refresh | |
-| `t` / `1` `2` `3` | next timeline / home, local, global | | |
-| `c` | show CW | | |
+| `Esc` | quit | back | back |
 | `n` | notifications | back | |
+| `x` / `c` | react / renote selected | | react / renote |
+| `m` | refresh | refresh | |
 | `a` / `Enter` | actions on selected | | do (current mode) |
-| `←` `→` / `h` `l` | page | page | select |
 | `↑` `↓` / `j` `k` | select | select | select |
-| `f` / `b` | react / renote selected | | react / renote |
+| `←` `→` / `h` `l` | page | page | select |
+| `t` / `1` `2` `3` | next timeline / home, local, global | | |
+| `v` | show CW | | |
 | `Tab` | notifications | back | switch mode |
-| `Esc` | | back | back |
