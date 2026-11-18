@@ -76,6 +76,10 @@ func (ns *NoteScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Applic
 			ctx.TranslateTo(ns.back)
 			return
 
+		case "f1":
+			ctx.TranslateTo("note-help")
+			return
+
 		case "up", "k":
 			ns.scroll--
 		case "down", "j":
@@ -112,8 +116,5 @@ func (ns *NoteScreen) drawNote(screen tcell.Screen, ctx ApplicationContext) {
 	if ns.notice != "" {
 		info += " · " + ns.notice
 	}
-	footer := footerText(ns.config.UI, info,
-		"[Esc] Back | [x] React | [c] Renote | [Up/Down] Scroll | [<-/->] Page")
-
-	ctx.DrawFooterbar(footer)
+	ctx.DrawFooterbar(footerText(info))
 }

@@ -36,7 +36,6 @@ type Configuration struct {
 type UIConfiguration struct {
 	MaxItemHeight int    `json:"maxheight"`
 	Layout        string `json:"layout"`
-	Footer        string `json:"footer"`
 	Refresh       int    `json:"refresh"`
 	Limit         int    `json:"limit"`
 }
@@ -44,9 +43,6 @@ type UIConfiguration struct {
 const (
 	LayoutClassic = "classic"
 	LayoutFit     = "fit"
-
-	FooterGuide = "guide"
-	FooterInfo  = "info"
 )
 
 type SessionConfiguration struct {
@@ -94,9 +90,6 @@ func (c *Configuration) applyDefaults() {
 	}
 	if c.UI.Layout != LayoutClassic {
 		c.UI.Layout = LayoutFit
-	}
-	if c.UI.Footer != FooterInfo {
-		c.UI.Footer = FooterGuide
 	}
 	if !slices.Contains(RefreshSteps, c.UI.Refresh) {
 		c.UI.Refresh = DefaultRefresh

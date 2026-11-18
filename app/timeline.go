@@ -110,8 +110,12 @@ func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Ap
 		case "esc", "C-c":
 			ctx.Exit(0)
 
-		case "m":
+		case "q":
 			ts.refreshData()
+
+		case "f1":
+			ctx.TranslateTo("main-help")
+			return
 
 		case "1":
 			ts.switchTimeline(CURRUNTTL_HOME)
@@ -211,10 +215,7 @@ func (ts *TimelineScreen) drawNotes(screen tcell.Screen, ctx ApplicationContext)
 	if ts.notice != "" {
 		info += " · " + ts.notice
 	}
-	footer := footerText(ts.config.UI, info,
-		"[Esc] Quit | [Enter] Open | [m] Refresh | [Tab] Notifications | [x] React | [c] Renote | [Up/Down] Select | [<-/->] Page | [1-3] Timeline | [z] CW")
-
-	ctx.DrawFooterbar(footer)
+	ctx.DrawFooterbar(footerText(info))
 }
 
 func actOnNote(client layer.Client, note layer.Note, react bool) string {
