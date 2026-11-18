@@ -5,6 +5,7 @@ import (
 	"os"
 	"tedi/config"
 	utils "tedi/utils"
+	"time"
 
 	"github.com/gdamore/tcell/v2"
 )
@@ -128,6 +129,10 @@ func (m *MainAppContexts) Exit(exitcode int) {
 
 func (m *MainAppContexts) TranslateTo(name string) {
 	m.transision_signal <- name
+}
+
+func refreshInterval(ui config.UIConfiguration) time.Duration {
+	return time.Duration(ui.Refresh) * time.Second
 }
 
 func footerText(ui config.UIConfiguration, info string, guide string) string {

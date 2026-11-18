@@ -12,8 +12,6 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-const notificationRefreshInterval = 30 * time.Second
-
 type NotificationScreen struct {
 	Notifications *pagedList[layer.Notification]
 	notilock      sync.Mutex
@@ -49,9 +47,9 @@ func (ns *NotificationScreen) resize(screen tcell.Screen) {
 func (ns *NotificationScreen) InitScene(screen tcell.Screen, ctx ApplicationContext) {
 	ns.resize(screen)
 
-	if !ns.autoRefreshStarted {
+	if !ns.autoRefreshStarted && ns.config.UI.Refresh != config.RefreshOff {
 		ns.autoRefreshStarted = true
-		time.AfterFunc(notificationRefreshInterval, func() { ns.autoRefresh(screen, ctx) })
+		time.AfterFunc(refreshInterval(ns.config.UI), func() { ns.autoRefresh(screen, ctx) })
 	}
 
 	ns.drawNotis(screen, ctx)
@@ -127,7 +125,7 @@ func (ns *NotificationScreen) autoRefresh(screen tcell.Screen, ctx ApplicationCo
 		screen.Show()
 	}
 
-	time.AfterFunc(notificationRefreshInterval, func() { ns.autoRefresh(screen, ctx) })
+	time.AfterFunc(refreshInterval(ns.config.UI), func() { ns.autoRefresh(screen, ctx) })
 }
 
 func (ns *NotificationScreen) drawNotis(screen tcell.Screen, ctx ApplicationContext) {

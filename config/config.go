@@ -1,5 +1,7 @@
 package config
 
+import "slices"
+
 type AppType string
 
 const (
@@ -15,7 +17,12 @@ const (
 	DefaultMaxItemHeight = 8
 	ItemHeightMin        = 5
 	ItemHeightMax        = 20
+
+	RefreshOff     = -1
+	DefaultRefresh = 30
 )
+
+var RefreshSteps = []int{RefreshOff, 10, 20, 30, 60, 120, 300}
 
 type Configuration struct {
 	Session SessionConfiguration `json:"session"`
@@ -26,6 +33,7 @@ type UIConfiguration struct {
 	MaxItemHeight int    `json:"maxheight"`
 	Layout        string `json:"layout"`
 	Footer        string `json:"footer"`
+	Refresh       int    `json:"refresh"`
 }
 
 const (
@@ -84,5 +92,8 @@ func (c *Configuration) applyDefaults() {
 	}
 	if c.UI.Footer != FooterInfo {
 		c.UI.Footer = FooterGuide
+	}
+	if !slices.Contains(RefreshSteps, c.UI.Refresh) {
+		c.UI.Refresh = DefaultRefresh
 	}
 }

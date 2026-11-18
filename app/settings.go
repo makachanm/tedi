@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"slices"
 
 	"tedi/config"
 	"tedi/utils"
@@ -24,6 +25,7 @@ const (
 	itemLayout settingsItem = iota
 	itemHeight
 	itemFooter
+	itemRefresh
 	itemLogin
 	itemLogout
 	itemSave
@@ -75,7 +77,7 @@ func (v *settingsView) items() []settingsItem {
 	if v.cfg.UI.Layout != config.LayoutFit {
 		items = append(items, itemHeight)
 	}
-	items = append(items, itemFooter, itemLogin)
+	items = append(items, itemFooter, itemRefresh, itemLogin)
 	if v.cfg.Session.LoggedIn() {
 		items = append(items, itemLogout)
 	}
@@ -94,6 +96,8 @@ func (v *settingsView) label(item settingsItem) string {
 		return fmt.Sprintf("%-17s < %d >", "Note height", v.cfg.UI.MaxItemHeight)
 	case itemFooter:
 		return fmt.Sprintf("%-17s < %s >", "Footer", v.cfg.UI.Footer)
+	case itemRefresh:
+		return fmt.Sprintf("%-17s < %s >", "Auto refresh", refreshText(v.cfg.UI.Refresh))
 	case itemLogin:
 		if v.cfg.Session.LoggedIn() {
 			return "Log in again"
@@ -113,6 +117,24 @@ func (v *settingsView) adjustHeight(delta int) {
 		return
 	}
 	v.cfg.UI.MaxItemHeight = h
+}
+
+func refreshText(sec int) string {
+	if sec == config.RefreshOff {
+		return "off"
+	}
+	if sec%60 == 0 {
+		return fmt.Sprintf("%dm", sec/60)
+	}
+	return fmt.Sprintf("%ds", sec)
+}
+
+func (v *settingsView) adjustRefresh(delta int) {
+	i := slices.Index(config.RefreshSteps, v.cfg.UI.Refresh) + delta
+	if i < 0 || i >= len(config.RefreshSteps) {
+		return
+	}
+	v.cfg.UI.Refresh = config.RefreshSteps[i]
 }
 
 func (v *settingsView) toggle(item settingsItem) {
@@ -144,6 +166,11 @@ func (v *settingsView) hint(item settingsItem) string {
 			return "info: the bottom bar shows only the page and mode."
 		}
 		return "guide: the bottom bar also lists the key bindings."
+	case itemRefresh:
+		if v.cfg.UI.Refresh == config.RefreshOff {
+			return "Timeline and notifications refresh only when you press m."
+		}
+		return "Timeline and notifications reload every " + refreshText(v.cfg.UI.Refresh) + "."
 	}
 	return ""
 }
@@ -183,6 +210,8 @@ func (v *settingsView) handleKey(ev *tcell.EventKey) (SettingsAction, bool) {
 			v.toggle(selected)
 		case itemHeight:
 			v.adjustHeight(-1)
+		case itemRefresh:
+			v.adjustRefresh(-1)
 		}
 	case ev.Key() == tcell.KeyRight || (ev.Key() == tcell.KeyRune && (ev.Rune() == '+' || ev.Rune() == '=')):
 		switch selected {
@@ -190,6 +219,8 @@ func (v *settingsView) handleKey(ev *tcell.EventKey) (SettingsAction, bool) {
 			v.toggle(selected)
 		case itemHeight:
 			v.adjustHeight(1)
+		case itemRefresh:
+			v.adjustRefresh(1)
 		}
 
 	case ev.Key() == tcell.KeyEnter:

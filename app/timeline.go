@@ -12,8 +12,6 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-const timelineRefreshInterval = 20 * time.Second
-
 type CurruntTL int
 
 const (
@@ -93,9 +91,9 @@ func (ts *TimelineScreen) resize(screen tcell.Screen) {
 func (ts *TimelineScreen) InitScene(screen tcell.Screen, ctx ApplicationContext) {
 	ts.resize(screen)
 
-	if !ts.autoRefreshStarted {
+	if !ts.autoRefreshStarted && ts.config.UI.Refresh != config.RefreshOff {
 		ts.autoRefreshStarted = true
-		time.AfterFunc(timelineRefreshInterval, func() { ts.autoRefresh(screen, ctx) })
+		time.AfterFunc(refreshInterval(ts.config.UI), func() { ts.autoRefresh(screen, ctx) })
 	}
 
 	ts.drawNotes(screen, ctx)
@@ -198,7 +196,7 @@ func (ts *TimelineScreen) autoRefresh(screen tcell.Screen, ctx ApplicationContex
 		screen.Show()
 	}
 
-	time.AfterFunc(timelineRefreshInterval, func() { ts.autoRefresh(screen, ctx) })
+	time.AfterFunc(refreshInterval(ts.config.UI), func() { ts.autoRefresh(screen, ctx) })
 }
 
 func (ts *TimelineScreen) drawNotes(screen tcell.Screen, ctx ApplicationContext) {
