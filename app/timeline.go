@@ -118,15 +118,6 @@ func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Ap
 		case "m":
 			ts.refreshData()
 
-		case "t":
-			switch ts.currunt_tl {
-			case CURRUNTTL_HOME:
-				ts.switchTimeline(CURRUNTTL_LOCAL)
-			case CURRUNTTL_LOCAL:
-				ts.switchTimeline(CURRUNTTL_GLOBAL)
-			default:
-				ts.switchTimeline(CURRUNTTL_HOME)
-			}
 		case "1":
 			ts.switchTimeline(CURRUNTTL_HOME)
 		case "2":
@@ -134,17 +125,11 @@ func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Ap
 		case "3":
 			ts.switchTimeline(CURRUNTTL_GLOBAL)
 
-		case "v":
+		case "z":
 			ts.timelinelock.Lock()
 			ts.showcw = !ts.showcw
 			ts.Timelines.layout()
 			ts.timelinelock.Unlock()
-
-		case "a", "enter":
-			ts.timelinelock.Lock()
-			insertActionTargets(ts.Timelines.GetCurruntPage(), ts.Timelines.cursor)
-			ts.timelinelock.Unlock()
-			ctx.TranslateTo("action")
 
 		case "up", "k":
 			ts.timelinelock.Lock()
@@ -224,7 +209,20 @@ func (ts *TimelineScreen) drawNotes(screen tcell.Screen, ctx ApplicationContext)
 		info += " · " + ts.notice
 	}
 	footer := footerText(ts.config.UI, info,
-		"[Esc] Quit | [m] Refresh | [n] Notifications | [x] React | [c] Renote | [a] Actions | [Up/Down] Select | [<-/->] Page | [t/1-3] Timeline | [v] CW")
+		"[Esc] Quit | [m] Refresh | [n] Notifications | [x] React | [c] Renote | [Up/Down] Select | [<-/->] Page | [1-3] Timeline | [z] CW")
 
 	ctx.DrawFooterbar(footer)
+}
+
+func actOnNote(client layer.Client, note layer.Note, react bool) string {
+	switch {
+	case react && client.PostReaction(note.Id):
+		return "Reacted to @" + note.Author_finger
+	case !react && client.PostRenote(note.Id):
+		return "Renoted @" + note.Author_finger
+	case react:
+		return "Reaction failed"
+	default:
+		return "Renote failed"
+	}
 }
