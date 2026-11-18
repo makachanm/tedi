@@ -109,14 +109,18 @@ func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Ap
 	if ev, ok := event.(*tcell.EventKey); ok {
 		ts.notice = ""
 		switch keyName(ev) {
-		case "esc", "C-c":
+		case "C-c":
 			ctx.Exit(0)
+
+		case "esc":
+			ctx.Back()
+			return
 
 		case "q":
 			ts.refreshData()
 
 		case "f1":
-			history.forward(ctx, "main-help", nil)
+			ctx.Forward("main-help", nil)
 			return
 
 		case "f2":
@@ -156,17 +160,17 @@ func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Ap
 			ts.timelinelock.Unlock()
 			if ok {
 				ts.detail.open(note)
-				history.forward(ctx, "note", nil)
+				ctx.Forward("note", nil)
 				return
 			}
 
 		case "w":
-			history.forward(ctx, "noti", nil)
+			ctx.Forward("noti", nil)
 			return
 
 		case "e":
 			ts.profile.open("")
-			history.forward(ctx, "profile", nil)
+			ctx.Forward("profile", nil)
 			return
 
 		case "left", "h", "pgup":

@@ -70,11 +70,11 @@ func (ns *NotificationScreen) DoScene(screen tcell.Screen, event tcell.Event, ct
 			ns.refreshData()
 
 		case "f1":
-			history.forward(ctx, "noti-help", nil)
+			ctx.Forward("noti-help", nil)
 			return
 
 		case "esc":
-			history.back(ctx)
+			ctx.Back()
 			return
 
 		case "enter":
@@ -84,11 +84,11 @@ func (ns *NotificationScreen) DoScene(screen tcell.Screen, event tcell.Event, ct
 			switch {
 			case ok && noti.NoteId != "":
 				ns.detail.open(layer.Note{Id: noti.NoteId, Content: noti.Content})
-				history.forward(ctx, "note", nil)
+				ctx.Forward("note", nil)
 				return
 			case ok && noti.ReactedUser.Id != "":
 				ns.profile.open(noti.ReactedUser.Id)
-				history.forward(ctx, "profile", nil)
+				ctx.Forward("profile", nil)
 				return
 			}
 

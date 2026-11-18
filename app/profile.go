@@ -111,11 +111,11 @@ func (ps *ProfileScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx App
 			ctx.Exit(0)
 
 		case "esc":
-			history.back(ctx)
+			ctx.Back()
 			return
 
 		case "f1":
-			history.forward(ctx, "profile-help", nil)
+			ctx.Forward("profile-help", nil)
 			return
 
 		case "q":
@@ -152,7 +152,7 @@ func (ps *ProfileScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx App
 			if ok {
 				restore := ps.snapshot()
 				ps.detail.open(note)
-				history.forward(ctx, "note", restore)
+				ctx.Forward("note", restore)
 				return
 			}
 

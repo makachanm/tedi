@@ -12,29 +12,36 @@ type History struct {
 	entries []historyEntry
 }
 
-var history = new(History)
-
-func (h *History) forward(ctx ApplicationContext, to string, restore func()) {
+func (h *History) push(entry historyEntry) {
 	h.lock.Lock()
-	h.entries = append(h.entries, historyEntry{ctx.GetCurruntScene(), restore})
-	h.lock.Unlock()
-
-	ctx.TranslateTo(to)
+	defer h.lock.Unlock()
+	h.entries = append(h.entries, entry)
 }
 
-func (h *History) back(ctx ApplicationContext) {
+func (h *History) pop() (historyEntry, bool) {
 	h.lock.Lock()
+	defer h.lock.Unlock()
 	if len(h.entries) == 0 {
-		h.lock.Unlock()
-		ctx.TranslateTo("main")
-		return
+		return historyEntry{}, false
 	}
 	entry := h.entries[len(h.entries)-1]
 	h.entries = h.entries[:len(h.entries)-1]
-	h.lock.Unlock()
+	return entry, true
+}
 
+func (m *MainAppContexts) Forward(scene string, restore func()) {
+	m.history.push(historyEntry{*m.scene, restore})
+	m.transision_signal <- scene
+}
+
+func (m *MainAppContexts) Back() {
+	entry, ok := m.history.pop()
+	if !ok {
+		m.Exit(0)
+		return
+	}
 	if entry.restore != nil {
 		entry.restore()
 	}
-	ctx.TranslateTo(entry.scene)
+	m.transision_signal <- entry.scene
 }

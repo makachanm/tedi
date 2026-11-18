@@ -108,6 +108,7 @@ type MainAppContexts struct {
 	termination_signal chan int
 	transision_signal  chan string
 	scene              *string
+	history            History
 
 	FooterFunc func(string)
 }
@@ -125,10 +126,6 @@ func NewMainAppCtx(termsig chan int, transsig chan string, footerfunc func(strin
 
 func (m *MainAppContexts) Exit(exitcode int) {
 	m.termination_signal <- exitcode
-}
-
-func (m *MainAppContexts) TranslateTo(name string) {
-	m.transision_signal <- name
 }
 
 func refreshInterval(ui config.UIConfiguration) time.Duration {

@@ -84,7 +84,7 @@ func (hs *HelpScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Applic
 		case "C-c":
 			ctx.Exit(0)
 		case "esc", "f1":
-			history.back(ctx)
+			ctx.Back()
 			return
 		}
 	}

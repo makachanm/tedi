@@ -81,18 +81,18 @@ func (ns *NoteScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Applic
 			ctx.Exit(0)
 
 		case "esc":
-			history.back(ctx)
+			ctx.Back()
 			return
 
 		case "f1":
-			history.forward(ctx, "note-help", nil)
+			ctx.Forward("note-help", nil)
 			return
 
 		case "enter":
 			if ns.note.Author_id != "" {
 				restore := ns.snapshot()
 				ns.profile.open(ns.note.Author_id)
-				history.forward(ctx, "profile", restore)
+				ctx.Forward("profile", restore)
 				return
 			}
 

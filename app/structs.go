@@ -10,7 +10,8 @@ type ApplicationScene interface {
 
 type ApplicationContext interface {
 	Exit(exitcode int)
-	TranslateTo(name string)
+	Forward(scene string, restore func())
+	Back()
 	DrawFooterbar(content string)
 	GetCurruntScene() string
 }
