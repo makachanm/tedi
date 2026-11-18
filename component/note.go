@@ -9,7 +9,7 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-func DrawNoteComponent(x int, y int, note layer.Note, ctx tcell.Screen, style tcell.Style, maxheight int, viewcw bool) {
+func DrawNoteComponent(x int, y int, note layer.Note, ctx tcell.Screen, style tcell.Style, maxheight int, viewcw bool, selected bool) {
 	screenW, _ := ctx.Size()
 	width := screenW - x - 2
 	clearRect(ctx, x, y, screenW-x, maxheight, style)
@@ -29,10 +29,10 @@ func DrawNoteComponent(x int, y int, note layer.Note, ctx tcell.Screen, style tc
 	if name == "" {
 		name = note.Author_finger
 	}
-	drawHeader(ctx, x+1, row, width, []segment{
+	drawHeader(ctx, x+1, row, width, cursorSegments(selected, style, []segment{
 		{name, style.Bold(true)},
 		{" @" + note.Author_finger, dim},
-	}, relativeTime(note.Time), style)
+	}), relativeTime(note.Time), style)
 	row++
 
 	lastRow := y + maxheight - 2

@@ -6,7 +6,6 @@ import (
 	"tedi/component"
 	"tedi/config"
 	"tedi/layer"
-	"tedi/utils"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -27,7 +26,7 @@ type NotificationScreen struct {
 func NewNotificationScreen(cfg config.Configuration, client layer.Client, detail *NoteScreen) *NotificationScreen {
 	ts := new(NotificationScreen)
 	ts.Notifications = newPagedList(cfg.UI, 40, func(noti layer.Notification, screenW int) int {
-		return component.NotificationHeight(noti, screenW, 3)
+		return component.NotificationHeight(noti, screenW, 1)
 	})
 	ts.FetchLayer = client
 	ts.detail = detail
@@ -136,10 +135,7 @@ func (ns *NotificationScreen) drawNotis(screen tcell.Screen, ctx ApplicationCont
 	y := 0
 	for i, noti := range ns.Notifications.GetCurruntPage() {
 		height := ns.Notifications.height(noti)
-		if i == ns.Notifications.cursor {
-			utils.WriteTo(screen, 0, y, " > ", textStyle)
-		}
-		component.DrawNotificationComponent(3, y, noti, screen, textStyle, height)
+		component.DrawNotificationComponent(1, y, noti, screen, textStyle, height, i == ns.Notifications.cursor)
 		y += height
 	}
 

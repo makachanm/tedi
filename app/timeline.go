@@ -6,7 +6,6 @@ import (
 	"tedi/component"
 	"tedi/config"
 	"tedi/layer"
-	"tedi/utils"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -69,7 +68,7 @@ func NewTimelineScreen(cfg config.Configuration, client layer.Client, detail *No
 		limit = 100
 	}
 	ts.Timelines = newPagedList(cfg.UI, limit, func(note layer.Note, screenW int) int {
-		return component.NoteHeight(note, screenW, 3, ts.showcw)
+		return component.NoteHeight(note, screenW, 1, ts.showcw)
 	})
 	ts.FetchLayer = client
 	ts.detail = detail
@@ -207,10 +206,7 @@ func (ts *TimelineScreen) drawNotes(screen tcell.Screen, ctx ApplicationContext)
 	y := 0
 	for i, note := range ts.Timelines.GetCurruntPage() {
 		height := ts.Timelines.height(note)
-		if i == ts.Timelines.cursor {
-			utils.WriteTo(screen, 0, y, " > ", textStyle)
-		}
-		component.DrawNoteComponent(3, y, note, screen, textStyle, height, ts.showcw)
+		component.DrawNoteComponent(1, y, note, screen, textStyle, height, ts.showcw, i == ts.Timelines.cursor)
 		y += height
 	}
 

@@ -29,7 +29,7 @@ func NotificationHeight(noti layer.Notification, screenW int, x int) int {
 	return len(wrapLines(htmlToText(noti.Content, false), width-2, tcell.StyleDefault)) + 2
 }
 
-func DrawNotificationComponent(x int, y int, noti layer.Notification, ctx tcell.Screen, style tcell.Style, maxheight int) {
+func DrawNotificationComponent(x int, y int, noti layer.Notification, ctx tcell.Screen, style tcell.Style, maxheight int, selected bool) {
 	screenW, _ := ctx.Size()
 	width := screenW - x - 2
 	clearRect(ctx, x, y, screenW-x, maxheight, style)
@@ -44,7 +44,7 @@ func DrawNotificationComponent(x int, y int, noti layer.Notification, ctx tcell.
 		header = append(header, segment{user.User_name + " ", style.Bold(true)})
 	}
 	header = append(header, segment{"@" + user.User_finger, dimStyle(style)})
-	drawHeader(ctx, x+1, y, width, header, relativeTime(noti.Time), style)
+	drawHeader(ctx, x+1, y, width, cursorSegments(selected, style, header), relativeTime(noti.Time), style)
 
 	if noti.Type == layer.NOTI_FOLLOW || noti.Content == "" {
 		return

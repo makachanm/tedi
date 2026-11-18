@@ -19,6 +19,13 @@ type segment struct {
 
 type line = segment
 
+func cursorSegments(selected bool, style tcell.Style, segs []segment) []segment {
+	if !selected {
+		return segs
+	}
+	return append([]segment{{">  ", style.Bold(true)}}, segs...)
+}
+
 func dimStyle(style tcell.Style) tcell.Style {
 	return style.Foreground(tcell.ColorGray)
 }
