@@ -58,6 +58,7 @@ func (n *MastodonNote) toNote() Note {
 
 	note := Note{
 		Id:            n.Id,
+		Author_id:     n.User.Id,
 		Author_finger: n.User.Finger,
 		Author_name:   n.User.displayName(),
 		Time:          n.CreatedAt,
@@ -214,7 +215,15 @@ func (m *MastodonFetch) GetThread(note_id string) ([]Note, []Note, error) {
 }
 
 func (m *MastodonFetch) GetProfile() (Profile, error) {
-	d, err := m.request(http.MethodGet, "api/v1/accounts/verify_credentials", nil)
+	return m.account("api/v1/accounts/verify_credentials")
+}
+
+func (m *MastodonFetch) GetUser(user_id string) (Profile, error) {
+	return m.account("api/v1/accounts/" + url.PathEscape(user_id))
+}
+
+func (m *MastodonFetch) account(path string) (Profile, error) {
+	d, err := m.request(http.MethodGet, path, nil)
 	if err != nil {
 		return Profile{}, err
 	}

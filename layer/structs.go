@@ -71,6 +71,7 @@ func platformNotiTypeToValue(s string) NotificationType {
 type Note struct {
 	Id string `json:"id"`
 
+	Author_id     string
 	Author_name   string
 	Author_finger string
 

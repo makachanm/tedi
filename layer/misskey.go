@@ -69,6 +69,7 @@ func (n *MisskeyNote) toNote() Note {
 
 	note := Note{
 		Id:            n.Id,
+		Author_id:     n.User.Id,
 		Author_finger: n.User.finger(),
 		Author_name:   n.User.displayName(),
 		Time:          n.CreatedAt,
@@ -262,7 +263,15 @@ func (m *MisskeyFetch) GetThread(note_id string) ([]Note, []Note, error) {
 }
 
 func (m *MisskeyFetch) GetProfile() (Profile, error) {
-	d, err := m.request("api/i", map[string]any{})
+	return m.account("api/i", map[string]any{})
+}
+
+func (m *MisskeyFetch) GetUser(user_id string) (Profile, error) {
+	return m.account("api/users/show", map[string]any{"userId": user_id})
+}
+
+func (m *MisskeyFetch) account(path string, body map[string]any) (Profile, error) {
+	d, err := m.request(path, body)
 	if err != nil {
 		return Profile{}, err
 	}

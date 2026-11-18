@@ -3,6 +3,7 @@ package layer
 import "time"
 
 type MastodonUser struct {
+	Id     string `json:"id"`
 	Name   string `json:"display_name"`
 	Finger string `json:"acct"`
 }
