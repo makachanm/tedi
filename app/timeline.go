@@ -6,6 +6,7 @@ import (
 	"tedi/component"
 	"tedi/config"
 	"tedi/layer"
+	"tedi/utils"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -56,6 +57,7 @@ type TimelineScreen struct {
 
 	config config.Configuration
 	showcw bool
+	notice string
 
 	autoRefreshStarted bool
 }
@@ -68,7 +70,7 @@ func NewTimelineScreen(cfg config.Configuration, client layer.Client) *TimelineS
 		limit = 100
 	}
 	ts.Timelines = newPagedList(cfg.UI, limit, func(note layer.Note, screenW int) int {
-		return component.NoteHeight(note, screenW, 0, ts.showcw)
+		return component.NoteHeight(note, screenW, 3, ts.showcw)
 	})
 	ts.FetchLayer = client
 	ts.config = cfg
@@ -108,6 +110,7 @@ func (ts *TimelineScreen) switchTimeline(tl CurruntTL) {
 
 func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx ApplicationContext) {
 	if ev, ok := event.(*tcell.EventKey); ok {
+		ts.notice = ""
 		switch keyName(ev) {
 		case "q", "C-c":
 			ctx.Exit(0)
@@ -139,9 +142,27 @@ func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Ap
 
 		case "a", "enter":
 			ts.timelinelock.Lock()
-			insertActionTargets(ts.Timelines.GetCurruntPage())
+			insertActionTargets(ts.Timelines.GetCurruntPage(), ts.Timelines.cursor)
 			ts.timelinelock.Unlock()
 			ctx.TranslateTo("action")
+
+		case "up", "k":
+			ts.timelinelock.Lock()
+			ts.Timelines.moveCursor(-1)
+			ts.timelinelock.Unlock()
+
+		case "down", "j":
+			ts.timelinelock.Lock()
+			ts.Timelines.moveCursor(1)
+			ts.timelinelock.Unlock()
+
+		case "f", "b":
+			ts.timelinelock.Lock()
+			note, ok := ts.Timelines.selected()
+			ts.timelinelock.Unlock()
+			if ok {
+				ts.notice = actOnNote(ts.FetchLayer, note, keyName(ev) == "f")
+			}
 
 		case "n", "tab":
 			ctx.TranslateTo("noti")
@@ -188,16 +209,22 @@ func (ts *TimelineScreen) drawNotes(screen tcell.Screen, ctx ApplicationContext)
 	textStyle := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
 
 	y := 0
-	for _, note := range ts.Timelines.GetCurruntPage() {
+	for i, note := range ts.Timelines.GetCurruntPage() {
 		height := ts.Timelines.height(note)
-		component.DrawNoteComponent(0, y, note, screen, textStyle, height, ts.showcw)
+		if i == ts.Timelines.cursor {
+			utils.WriteTo(screen, 0, y, " > ", textStyle)
+		}
+		component.DrawNoteComponent(3, y, note, screen, textStyle, height, ts.showcw)
 		y += height
 	}
 
 	page, total := ts.Timelines.GetCurruntPagePointer()+1, ts.Timelines.GetTotalPage()+1
-	footer := footerText(ts.config.UI,
-		fmt.Sprintf("%s Page %d/%d", curruntTimeline(ts.currunt_tl), page, total),
-		"[q] Quit | [r] Refresh | [t/1-3] Timeline | [c] CW | [n] Notifications | [a] Actions | [<-/->] Page")
+	info := fmt.Sprintf("%s Page %d/%d", curruntTimeline(ts.currunt_tl), page, total)
+	if ts.notice != "" {
+		info += " · " + ts.notice
+	}
+	footer := footerText(ts.config.UI, info,
+		"[q] Quit | [r] Refresh | [t/1-3] Timeline | [c] CW | [n] Notifications | [Up/Down] Select | [f] React | [b] Renote | [a] Actions | [<-/->] Page")
 
 	ctx.DrawFooterbar(footer)
 }

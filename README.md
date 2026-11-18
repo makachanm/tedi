@@ -37,9 +37,9 @@ The access token is kept in the system keyring (Secret Service, Keychain, Creden
 | `t` / `1` `2` `3` | next timeline / home, local, global | | |
 | `c` | show CW | | |
 | `n` | notifications | back | |
-| `a` / `Enter` | actions | | do (current mode) |
+| `a` / `Enter` | actions on selected | | do (current mode) |
 | `←` `→` / `h` `l` | page | page | select |
-| `↑` `↓` / `j` `k` | | | select |
-| `f` / `b` | | | react / renote |
+| `↑` `↓` / `j` `k` | select | select | select |
+| `f` / `b` | react / renote selected | | react / renote |
 | `Tab` | notifications | back | switch mode |
 | `Esc` | | back | back |

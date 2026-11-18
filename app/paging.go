@@ -21,6 +21,7 @@ type pagedList[T any] struct {
 	pager[T]
 
 	items   []T
+	cursor  int
 	screenW int
 	screenH int
 }
@@ -70,6 +71,46 @@ func (l *pagedList[T]) layout() {
 	}
 
 	for i := 0; i < pos; i++ {
-		l.GoNext()
+		l.pager.GoNext()
 	}
+	l.cursor = min(l.cursor, max(len(l.GetCurruntPage())-1, 0))
+}
+
+func (l *pagedList[T]) GoPrev() {
+	l.pager.GoPrev()
+	l.cursor = 0
+}
+
+func (l *pagedList[T]) GoNext() {
+	l.pager.GoNext()
+	l.cursor = 0
+}
+
+func (l *pagedList[T]) moveCursor(delta int) {
+	cursor := l.cursor + delta
+	page := l.GetCurruntPagePointer()
+
+	switch {
+	case cursor < 0:
+		l.pager.GoPrev()
+		if l.GetCurruntPagePointer() != page {
+			cursor = len(l.GetCurruntPage()) - 1
+		}
+	case cursor >= len(l.GetCurruntPage()):
+		l.pager.GoNext()
+		if l.GetCurruntPagePointer() != page {
+			cursor = 0
+		}
+	}
+
+	l.cursor = min(max(cursor, 0), max(len(l.GetCurruntPage())-1, 0))
+}
+
+func (l *pagedList[T]) selected() (T, bool) {
+	page := l.GetCurruntPage()
+	if l.cursor >= len(page) {
+		var zero T
+		return zero, false
+	}
+	return page[l.cursor], true
 }

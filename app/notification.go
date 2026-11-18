@@ -6,6 +6,7 @@ import (
 	"tedi/component"
 	"tedi/config"
 	"tedi/layer"
+	"tedi/utils"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -27,7 +28,7 @@ type NotificationScreen struct {
 func NewNotificationScreen(cfg config.Configuration, client layer.Client) *NotificationScreen {
 	ts := new(NotificationScreen)
 	ts.Notifications = newPagedList(cfg.UI, 40, func(noti layer.Notification, screenW int) int {
-		return component.NotificationHeight(noti, screenW, 0)
+		return component.NotificationHeight(noti, screenW, 3)
 	})
 	ts.FetchLayer = client
 	ts.config = cfg
@@ -69,6 +70,16 @@ func (ns *NotificationScreen) DoScene(screen tcell.Screen, event tcell.Event, ct
 
 		case "n", "tab", "esc":
 			ctx.TranslateTo("main")
+
+		case "up", "k":
+			ns.notilock.Lock()
+			ns.Notifications.moveCursor(-1)
+			ns.notilock.Unlock()
+
+		case "down", "j":
+			ns.notilock.Lock()
+			ns.Notifications.moveCursor(1)
+			ns.notilock.Unlock()
 
 		case "left", "h", "pgup":
 			ns.notilock.Lock()
@@ -112,16 +123,19 @@ func (ns *NotificationScreen) drawNotis(screen tcell.Screen, ctx ApplicationCont
 	textStyle := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
 
 	y := 0
-	for _, noti := range ns.Notifications.GetCurruntPage() {
+	for i, noti := range ns.Notifications.GetCurruntPage() {
 		height := ns.Notifications.height(noti)
-		component.DrawNotificationComponent(0, y, noti, screen, textStyle, height)
+		if i == ns.Notifications.cursor {
+			utils.WriteTo(screen, 0, y, " > ", textStyle)
+		}
+		component.DrawNotificationComponent(3, y, noti, screen, textStyle, height)
 		y += height
 	}
 
 	page, total := ns.Notifications.GetCurruntPagePointer()+1, ns.Notifications.GetTotalPage()+1
 	footer := footerText(ns.config.UI,
 		fmt.Sprintf("Noti Page %d/%d", page, total),
-		"[q] Quit | [r] Refresh | [n] Back | [<-/->] Page")
+		"[q] Quit | [r] Refresh | [n] Back | [Up/Down] Select | [<-/->] Page")
 
 	ctx.DrawFooterbar(footer)
 }

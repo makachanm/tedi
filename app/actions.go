@@ -10,17 +10,32 @@ import (
 )
 
 var ActionTimelineNoteData []layer.Note
+var actionStartSelection int
 
 func init() {
 	ActionTimelineNoteData = make([]layer.Note, 0)
 }
 
-func insertActionTargets(notes []layer.Note) {
+func insertActionTargets(notes []layer.Note, selected int) {
 	ActionTimelineNoteData = append(ActionTimelineNoteData, notes...)
+	actionStartSelection = selected
 }
 
 func clearActionTargets() {
 	ActionTimelineNoteData = make([]layer.Note, 0)
+}
+
+func actOnNote(client layer.Client, note layer.Note, react bool) string {
+	switch {
+	case react && client.PostReaction(note.Id):
+		return "Reacted to @" + note.Author_finger
+	case !react && client.PostRenote(note.Id):
+		return "Renoted @" + note.Author_finger
+	case react:
+		return "Reaction failed"
+	default:
+		return "Renote failed"
+	}
 }
 
 func (as *ActionScreen) leave(ctx ApplicationContext) {
@@ -56,6 +71,7 @@ func NewActionScreen(cfg config.Configuration, client layer.Client) *ActionScree
 }
 
 func (as *ActionScreen) InitScene(screen tcell.Screen, ctx ApplicationContext) {
+	as.selection = min(actionStartSelection, max(len(ActionTimelineNoteData)-1, 0))
 	as.drawNotes(screen, ctx)
 }
 
