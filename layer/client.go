@@ -14,6 +14,7 @@ type Client interface {
 
 	GetNotifications() []Notification
 	GetNote(note_id string) (Note, error)
+	GetThread(note_id string) ([]Note, []Note, error)
 
 	PostRenote(note_id string) bool
 	PostReaction(note_id string) bool

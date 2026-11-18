@@ -62,6 +62,10 @@ func (n *MastodonNote) toNote() Note {
 		Visiblity:     platformVisblityToValue(n.Visibility),
 	}
 
+	if n.InReplyTo != nil {
+		note.ReplyTo = *n.InReplyTo
+	}
+
 	for _, media := range n.Medias {
 		note.Medias = append(note.Medias, media.URL)
 	}
@@ -159,4 +163,26 @@ func (m *MastodonFetch) GetNote(note_id string) (Note, error) {
 		return Note{}, fmt.Errorf("decode note: %w", err)
 	}
 	return mNote.toNote(), nil
+}
+
+func (m *MastodonFetch) GetThread(note_id string) ([]Note, []Note, error) {
+	d, err := m.request(http.MethodGet, "api/v1/statuses/"+url.PathEscape(note_id)+"/context", nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var mctx MastodonContext
+	if err := json.Unmarshal(d, &mctx); err != nil {
+		return nil, nil, fmt.Errorf("decode thread: %w", err)
+	}
+
+	ancestors := make([]Note, 0, len(mctx.Ancestors))
+	for i := range mctx.Ancestors {
+		ancestors = append(ancestors, mctx.Ancestors[i].toNote())
+	}
+	descendants := make([]Note, 0, len(mctx.Descendants))
+	for i := range mctx.Descendants {
+		descendants = append(descendants, mctx.Descendants[i].toNote())
+	}
+	return ancestors, descendants, nil
 }

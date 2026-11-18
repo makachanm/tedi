@@ -22,6 +22,12 @@ type MastodonNote struct {
 	Visibility      string          `json:"visibility"`
 	Medias          []MastodonMedia `json:"media_attachments"`
 	RenotedField    *MastodonNote   `json:"reblog,omitempty"`
+	InReplyTo       *string         `json:"in_reply_to_id"`
+}
+
+type MastodonContext struct {
+	Ancestors   []MastodonNote `json:"ancestors"`
+	Descendants []MastodonNote `json:"descendants"`
 }
 
 type MastodonNotification struct {

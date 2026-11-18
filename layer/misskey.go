@@ -9,6 +9,7 @@ import (
 )
 
 const misskeyTimelineLimit = 100
+const misskeyThreadRequests = 20
 
 const misskeyDefaultReaction = "❤"
 
@@ -79,6 +80,9 @@ func (n *MisskeyNote) toNote() Note {
 	}
 	if n.Spoilerwarning != nil {
 		note.Spoiler = *n.Spoilerwarning
+	}
+	if n.ReplyId != nil {
+		note.ReplyTo = *n.ReplyId
 	}
 
 	for _, file := range n.Files {
@@ -195,4 +199,43 @@ func (m *MisskeyFetch) GetNote(note_id string) (Note, error) {
 		return Note{}, fmt.Errorf("decode note: %w", err)
 	}
 	return mNote.toNote(), nil
+}
+
+func (m *MisskeyFetch) GetThread(note_id string) ([]Note, []Note, error) {
+	d, err := m.request("api/notes/conversation", map[string]any{"noteId": note_id, "limit": 100})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var up []MisskeyNote
+	if err := json.Unmarshal(d, &up); err != nil {
+		return nil, nil, fmt.Errorf("decode thread: %w", err)
+	}
+
+	ancestors := make([]Note, 0, len(up))
+	for i := len(up) - 1; i >= 0; i-- {
+		ancestors = append(ancestors, up[i].toNote())
+	}
+
+	var descendants []Note
+	queue := []string{note_id}
+	for requests := 0; len(queue) > 0 && requests < misskeyThreadRequests; requests++ {
+		d, err := m.request("api/notes/replies", map[string]any{"noteId": queue[0], "limit": 100})
+		queue = queue[1:]
+		if err != nil {
+			return ancestors, descendants, err
+		}
+
+		var replies []MisskeyNote
+		if err := json.Unmarshal(d, &replies); err != nil {
+			return ancestors, descendants, fmt.Errorf("decode thread: %w", err)
+		}
+		for i := range replies {
+			descendants = append(descendants, replies[i].toNote())
+			if replies[i].RepliesCount > 0 {
+				queue = append(queue, replies[i].Id)
+			}
+		}
+	}
+	return ancestors, descendants, nil
 }

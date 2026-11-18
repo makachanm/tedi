@@ -24,6 +24,8 @@ type MisskeyNote struct {
 	Visibility     string        `json:"visibility"`
 	Files          []MisskeyFile `json:"files"`
 	Renote         *MisskeyNote  `json:"renote,omitempty"`
+	ReplyId        *string       `json:"replyId"`
+	RepliesCount   int           `json:"repliesCount"`
 }
 
 type MisskeyNotification struct {
