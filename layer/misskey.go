@@ -160,6 +160,7 @@ func (m *MisskeyFetch) GetNotifications() []Notification {
 			}
 		}
 		if mn.Note != nil {
+			noti.NoteId = mn.Note.Id
 			switch {
 			case mn.Note.Content != nil:
 				noti.Content = *mn.Note.Content
@@ -181,4 +182,17 @@ func (m *MisskeyFetch) PostRenote(note_id string) bool {
 func (m *MisskeyFetch) PostReaction(note_id string) bool {
 	_, err := m.request("api/notes/reactions/create", map[string]any{"noteId": note_id, "reaction": misskeyDefaultReaction})
 	return err == nil
+}
+
+func (m *MisskeyFetch) GetNote(note_id string) (Note, error) {
+	d, err := m.request("api/notes/show", map[string]any{"noteId": note_id})
+	if err != nil {
+		return Note{}, err
+	}
+
+	var mNote MisskeyNote
+	if err := json.Unmarshal(d, &mNote); err != nil {
+		return Note{}, fmt.Errorf("decode note: %w", err)
+	}
+	return mNote.toNote(), nil
 }

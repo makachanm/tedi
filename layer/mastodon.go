@@ -129,6 +129,7 @@ func (m *MastodonFetch) GetNotifications() []Notification {
 		}
 		if mn.Status != nil {
 			noti.Content = mn.Status.Contents
+			noti.NoteId = mn.Status.Id
 		}
 		notis = append(notis, noti)
 	}
@@ -145,4 +146,17 @@ func (m *MastodonFetch) PostReaction(note_id string) bool {
 	// Mastodon only has favourite
 	_, err := m.request(http.MethodPost, "api/v1/statuses/"+url.PathEscape(note_id)+"/favourite", nil)
 	return err == nil
+}
+
+func (m *MastodonFetch) GetNote(note_id string) (Note, error) {
+	d, err := m.request(http.MethodGet, "api/v1/statuses/"+url.PathEscape(note_id), nil)
+	if err != nil {
+		return Note{}, err
+	}
+
+	var mNote MastodonNote
+	if err := json.Unmarshal(d, &mNote); err != nil {
+		return Note{}, fmt.Errorf("decode note: %w", err)
+	}
+	return mNote.toNote(), nil
 }

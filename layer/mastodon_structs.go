@@ -40,5 +40,6 @@ type MastodonNotiUser struct {
 }
 
 type MastodonStatus struct {
+	Id       string `json:"id"`
 	Contents string `json:"content"`
 }

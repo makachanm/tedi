@@ -13,6 +13,7 @@ type Client interface {
 	GetHomeTimeline() []Note
 
 	GetNotifications() []Notification
+	GetNote(note_id string) (Note, error)
 
 	PostRenote(note_id string) bool
 	PostReaction(note_id string) bool

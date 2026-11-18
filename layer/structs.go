@@ -100,5 +100,6 @@ type Notification struct {
 
 	Time        time.Time
 	Content     string
+	NoteId      string
 	ReactedUser User
 }
