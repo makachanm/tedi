@@ -52,6 +52,7 @@ type TimelineScreen struct {
 	FetchLayer layer.Client
 	currunt_tl CurruntTL
 	detail     *NoteScreen
+	profile    *ProfileScreen
 
 	config config.Configuration
 	showcw bool
@@ -60,7 +61,7 @@ type TimelineScreen struct {
 	autoRefreshStarted bool
 }
 
-func NewTimelineScreen(cfg config.Configuration, client layer.Client, detail *NoteScreen) *TimelineScreen {
+func NewTimelineScreen(cfg config.Configuration, client layer.Client, detail *NoteScreen, profile *ProfileScreen) *TimelineScreen {
 	ts := new(TimelineScreen)
 
 	ts.Timelines = newPagedList(cfg.UI, cfg.UI.Limit, func(note layer.Note, screenW int) int {
@@ -68,6 +69,7 @@ func NewTimelineScreen(cfg config.Configuration, client layer.Client, detail *No
 	})
 	ts.FetchLayer = client
 	ts.detail = detail
+	ts.profile = profile
 	ts.config = cfg
 	ts.showcw = false
 
@@ -114,7 +116,7 @@ func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Ap
 			ts.refreshData()
 
 		case "f1":
-			ctx.TranslateTo("main-help")
+			history.forward(ctx, "main-help", nil)
 			return
 
 		case "f2":
@@ -153,17 +155,18 @@ func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Ap
 			note, ok := ts.Timelines.selected()
 			ts.timelinelock.Unlock()
 			if ok {
-				ts.detail.open(note, "main")
-				ctx.TranslateTo("note")
+				ts.detail.open(note)
+				history.forward(ctx, "note", nil)
 				return
 			}
 
 		case "w":
-			ctx.TranslateTo("noti")
+			history.forward(ctx, "noti", nil)
 			return
 
 		case "e":
-			ctx.TranslateTo("profile")
+			ts.profile.open("")
+			history.forward(ctx, "profile", nil)
 			return
 
 		case "left", "h", "pgup":

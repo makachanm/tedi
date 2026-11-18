@@ -13,12 +13,11 @@ type helpEntry struct {
 
 type HelpScreen struct {
 	title string
-	back  string
 	keys  []helpEntry
 }
 
 func NewTimelineHelp() *HelpScreen {
-	return &HelpScreen{title: "Timeline", back: "main", keys: []helpEntry{
+	return &HelpScreen{title: "Timeline", keys: []helpEntry{
 		{"Up / Down, k / j", "select note"},
 		{"Left / Right, h / l", "previous / next page"},
 		{"Enter", "open note and its thread"},
@@ -35,18 +34,18 @@ func NewTimelineHelp() *HelpScreen {
 }
 
 func NewNotificationHelp() *HelpScreen {
-	return &HelpScreen{title: "Notifications", back: "noti", keys: []helpEntry{
+	return &HelpScreen{title: "Notifications", keys: []helpEntry{
 		{"Up / Down, k / j", "select notification"},
 		{"Left / Right, h / l", "previous / next page"},
-		{"Enter", "open the note it refers to"},
+		{"Enter", "open the note, or the user for follows"},
 		{"q", "refresh"},
 		{"F1", "this guide"},
-		{"Esc", "back to timeline"},
+		{"Esc", "back"},
 	}}
 }
 
 func NewProfileHelp() *HelpScreen {
-	return &HelpScreen{title: "Profile", back: "profile", keys: []helpEntry{
+	return &HelpScreen{title: "Profile", keys: []helpEntry{
 		{"Up / Down, k / j", "select note"},
 		{"Left / Right, h / l", "previous / next page"},
 		{"Enter", "open note and its thread"},
@@ -55,14 +54,15 @@ func NewProfileHelp() *HelpScreen {
 		{"z", "show or hide CW content"},
 		{"q", "refresh"},
 		{"F1", "this guide"},
-		{"Esc", "back to timeline"},
+		{"Esc", "back"},
 	}}
 }
 
 func NewNoteHelp() *HelpScreen {
-	return &HelpScreen{title: "Note", back: "note", keys: []helpEntry{
+	return &HelpScreen{title: "Note", keys: []helpEntry{
 		{"Up / Down, k / j", "scroll"},
 		{"Left / Right, h / l", "scroll a page"},
+		{"Enter", "author's profile"},
 		{"x", "react to this note"},
 		{"c", "renote this note"},
 		{"F1", "this guide"},
@@ -84,7 +84,7 @@ func (hs *HelpScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Applic
 		case "C-c":
 			ctx.Exit(0)
 		case "esc", "f1":
-			ctx.TranslateTo(hs.back)
+			history.back(ctx)
 			return
 		}
 	}

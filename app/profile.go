@@ -10,55 +10,80 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
+type profileView struct {
+	userId  string
+	profile layer.Profile
+	notes   *pagedList[layer.Note]
+	loaded  bool
+	showcw  bool
+	notice  string
+}
+
 type ProfileScreen struct {
-	Notes    *pagedList[layer.Note]
-	notelock sync.Mutex
+	profileView
+	lock sync.Mutex
 
 	FetchLayer layer.Client
 	detail     *NoteScreen
 	config     config.Configuration
-
-	profile layer.Profile
-	header  int
-	loaded  bool
-	showcw  bool
-	notice  string
-	screenW int
-	screenH int
 }
 
 func NewProfileScreen(cfg config.Configuration, client layer.Client, detail *NoteScreen) *ProfileScreen {
 	ps := new(ProfileScreen)
-	ps.Notes = newPagedList(cfg.UI, cfg.UI.Limit, func(note layer.Note, screenW int) int {
-		return component.NoteHeight(note, screenW, 1, ps.showcw)
-	})
 	ps.FetchLayer = client
 	ps.detail = detail
 	ps.config = cfg
+	ps.open("")
 	return ps
 }
 
+func (ps *ProfileScreen) open(userId string) {
+	ps.lock.Lock()
+	defer ps.lock.Unlock()
+	ps.profileView = profileView{userId: userId}
+	ps.notes = newPagedList(ps.config.UI, ps.config.UI.Limit, func(note layer.Note, screenW int) int {
+		return component.NoteHeight(note, screenW, 1, ps.showcw)
+	})
+}
+
+func (ps *ProfileScreen) snapshot() func() {
+	ps.lock.Lock()
+	defer ps.lock.Unlock()
+	saved := ps.profileView
+	return func() {
+		ps.lock.Lock()
+		defer ps.lock.Unlock()
+		ps.profileView = saved
+	}
+}
+
 func (ps *ProfileScreen) resize(screen tcell.Screen) {
-	ps.notelock.Lock()
-	defer ps.notelock.Unlock()
-	ps.screenW, ps.screenH = screen.Size()
-	ps.header = component.ProfileHeight(ps.profile, ps.screenW, 2)
-	ps.Notes.resize(ps.screenW, max(ps.screenH-ps.header, 2))
+	ps.lock.Lock()
+	defer ps.lock.Unlock()
+	w, h := screen.Size()
+	header := component.ProfileHeight(ps.profile, w, 2)
+	ps.notes.resize(w, max(h-header, 2))
 }
 
 func (ps *ProfileScreen) refreshData(screen tcell.Screen) {
-	profile, err := ps.FetchLayer.GetProfile()
+	var profile layer.Profile
+	var err error
+	if ps.userId == "" {
+		profile, err = ps.FetchLayer.GetProfile()
+	} else {
+		profile, err = ps.FetchLayer.GetUser(ps.userId)
+	}
 	if err != nil {
 		ps.notice = "Could not load profile"
 		return
 	}
 	notes := ps.FetchLayer.GetUserNotes(profile.Id)
 
-	ps.notelock.Lock()
+	ps.lock.Lock()
 	ps.profile = profile
 	ps.loaded = true
-	ps.Notes.setItems(notes)
-	ps.notelock.Unlock()
+	ps.notes.setItems(notes)
+	ps.lock.Unlock()
 
 	ps.resize(screen)
 }
@@ -86,59 +111,60 @@ func (ps *ProfileScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx App
 			ctx.Exit(0)
 
 		case "esc":
-			ctx.TranslateTo("main")
+			history.back(ctx)
 			return
 
 		case "f1":
-			ctx.TranslateTo("profile-help")
+			history.forward(ctx, "profile-help", nil)
 			return
 
 		case "q":
 			ps.refreshData(screen)
 
 		case "z":
-			ps.notelock.Lock()
+			ps.lock.Lock()
 			ps.showcw = !ps.showcw
-			ps.Notes.layout()
-			ps.notelock.Unlock()
+			ps.notes.layout()
+			ps.lock.Unlock()
 
 		case "up", "k":
-			ps.notelock.Lock()
-			ps.Notes.moveCursor(-1)
-			ps.notelock.Unlock()
+			ps.lock.Lock()
+			ps.notes.moveCursor(-1)
+			ps.lock.Unlock()
 
 		case "down", "j":
-			ps.notelock.Lock()
-			ps.Notes.moveCursor(1)
-			ps.notelock.Unlock()
+			ps.lock.Lock()
+			ps.notes.moveCursor(1)
+			ps.lock.Unlock()
 
 		case "x", "c":
-			ps.notelock.Lock()
-			note, ok := ps.Notes.selected()
-			ps.notelock.Unlock()
+			ps.lock.Lock()
+			note, ok := ps.notes.selected()
+			ps.lock.Unlock()
 			if ok {
 				ps.notice = actOnNote(ps.FetchLayer, note, keyName(ev) == "x")
 			}
 
 		case "enter":
-			ps.notelock.Lock()
-			note, ok := ps.Notes.selected()
-			ps.notelock.Unlock()
+			ps.lock.Lock()
+			note, ok := ps.notes.selected()
+			ps.lock.Unlock()
 			if ok {
-				ps.detail.open(note, "profile")
-				ctx.TranslateTo("note")
+				restore := ps.snapshot()
+				ps.detail.open(note)
+				history.forward(ctx, "note", restore)
 				return
 			}
 
 		case "left", "h", "pgup":
-			ps.notelock.Lock()
-			ps.Notes.GoPrev()
-			ps.notelock.Unlock()
+			ps.lock.Lock()
+			ps.notes.GoPrev()
+			ps.lock.Unlock()
 
 		case "right", "l", "pgdn", " ":
-			ps.notelock.Lock()
-			ps.Notes.GoNext()
-			ps.notelock.Unlock()
+			ps.lock.Lock()
+			ps.notes.GoNext()
+			ps.lock.Unlock()
 		}
 	}
 
@@ -147,8 +173,8 @@ func (ps *ProfileScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx App
 }
 
 func (ps *ProfileScreen) drawProfile(screen tcell.Screen, ctx ApplicationContext) {
-	ps.notelock.Lock()
-	defer ps.notelock.Unlock()
+	ps.lock.Lock()
+	defer ps.lock.Unlock()
 	textStyle := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
 
 	y := 0
@@ -156,13 +182,13 @@ func (ps *ProfileScreen) drawProfile(screen tcell.Screen, ctx ApplicationContext
 		y = component.DrawProfileHeader(2, 0, ps.profile, screen, textStyle)
 	}
 
-	for i, note := range ps.Notes.GetCurruntPage() {
-		height := ps.Notes.height(note)
-		component.DrawNoteComponent(1, y, note, screen, textStyle, height, ps.showcw, i == ps.Notes.cursor)
+	for i, note := range ps.notes.GetCurruntPage() {
+		height := ps.notes.height(note)
+		component.DrawNoteComponent(1, y, note, screen, textStyle, height, ps.showcw, i == ps.notes.cursor)
 		y += height
 	}
 
-	page, total := ps.Notes.GetCurruntPagePointer()+1, ps.Notes.GetTotalPage()+1
+	page, total := ps.notes.GetCurruntPagePointer()+1, ps.notes.GetTotalPage()+1
 	info := fmt.Sprintf("Profile Page %d/%d", page, total)
 	if ps.notice != "" {
 		info += " · " + ps.notice

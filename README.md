@@ -33,7 +33,7 @@ The access token is kept in the system keyring (Secret Service, Keychain, Creden
 | Key | Timeline | Notifications | Profile | Note |
 |---|---|---|---|---|
 | `Esc` | quit | back | back | back |
-| `Enter` | open note | open note | open note | |
+| `Enter` | open note | open note / user | open note | author's profile |
 | `w` | notifications | | | |
 | `e` | my profile | | | |
 | `x` / `c` | react / renote | | react / renote | react / renote |

@@ -17,19 +17,21 @@ type NotificationScreen struct {
 
 	FetchLayer layer.Client
 	detail     *NoteScreen
+	profile    *ProfileScreen
 
 	config config.Configuration
 
 	autoRefreshStarted bool
 }
 
-func NewNotificationScreen(cfg config.Configuration, client layer.Client, detail *NoteScreen) *NotificationScreen {
+func NewNotificationScreen(cfg config.Configuration, client layer.Client, detail *NoteScreen, profile *ProfileScreen) *NotificationScreen {
 	ts := new(NotificationScreen)
 	ts.Notifications = newPagedList(cfg.UI, cfg.UI.Limit, func(noti layer.Notification, screenW int) int {
 		return component.NotificationHeight(noti, screenW, 1)
 	})
 	ts.FetchLayer = client
 	ts.detail = detail
+	ts.profile = profile
 	ts.config = cfg
 
 	ts.Notifications.setItems(ts.FetchLayer.GetNotifications())
@@ -68,20 +70,25 @@ func (ns *NotificationScreen) DoScene(screen tcell.Screen, event tcell.Event, ct
 			ns.refreshData()
 
 		case "f1":
-			ctx.TranslateTo("noti-help")
+			history.forward(ctx, "noti-help", nil)
 			return
 
 		case "esc":
-			ctx.TranslateTo("main")
+			history.back(ctx)
 			return
 
 		case "enter":
 			ns.notilock.Lock()
 			noti, ok := ns.Notifications.selected()
 			ns.notilock.Unlock()
-			if ok && noti.NoteId != "" {
-				ns.detail.open(layer.Note{Id: noti.NoteId, Content: noti.Content}, "noti")
-				ctx.TranslateTo("note")
+			switch {
+			case ok && noti.NoteId != "":
+				ns.detail.open(layer.Note{Id: noti.NoteId, Content: noti.Content})
+				history.forward(ctx, "note", nil)
+				return
+			case ok && noti.ReactedUser.Id != "":
+				ns.profile.open(noti.ReactedUser.Id)
+				history.forward(ctx, "profile", nil)
 				return
 			}
 

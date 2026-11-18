@@ -9,20 +9,25 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-type NoteScreen struct {
-	FetchLayer layer.Client
-	config     config.Configuration
-
+type noteView struct {
 	note      layer.Note
 	ancestors []layer.Note
 	replies   []layer.Note
-	back      string
 	notice    string
 
 	scroll int
-	total  int
-	rows   int
 	jump   bool
+}
+
+type NoteScreen struct {
+	noteView
+
+	FetchLayer layer.Client
+	config     config.Configuration
+	profile    *ProfileScreen
+
+	total int
+	rows  int
 }
 
 func NewNoteScreen(cfg config.Configuration, client layer.Client) *NoteScreen {
@@ -32,14 +37,17 @@ func NewNoteScreen(cfg config.Configuration, client layer.Client) *NoteScreen {
 	return ns
 }
 
-func (ns *NoteScreen) open(note layer.Note, back string) {
-	ns.note = note
-	ns.back = back
-	ns.notice = ""
-	ns.scroll = 0
-	ns.jump = true
-	ns.ancestors = nil
-	ns.replies = nil
+func (ns *NoteScreen) SetProfileScreen(profile *ProfileScreen) {
+	ns.profile = profile
+}
+
+func (ns *NoteScreen) snapshot() func() {
+	saved := ns.noteView
+	return func() { ns.noteView = saved }
+}
+
+func (ns *NoteScreen) open(note layer.Note) {
+	ns.noteView = noteView{note: note, jump: true}
 
 	full, err := ns.FetchLayer.GetNote(note.Id)
 	if err != nil {
@@ -73,12 +81,20 @@ func (ns *NoteScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Applic
 			ctx.Exit(0)
 
 		case "esc":
-			ctx.TranslateTo(ns.back)
+			history.back(ctx)
 			return
 
 		case "f1":
-			ctx.TranslateTo("note-help")
+			history.forward(ctx, "note-help", nil)
 			return
+
+		case "enter":
+			if ns.note.Author_id != "" {
+				restore := ns.snapshot()
+				ns.profile.open(ns.note.Author_id)
+				history.forward(ctx, "profile", restore)
+				return
+			}
 
 		case "up", "k":
 			ns.scroll--
