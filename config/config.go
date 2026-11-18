@@ -87,8 +87,8 @@ func (c *Configuration) applyDefaults() {
 	if c.UI.MaxItemHeight < ItemHeightMin {
 		c.UI.MaxItemHeight = DefaultMaxItemHeight
 	}
-	if c.UI.Layout != LayoutFit {
-		c.UI.Layout = LayoutClassic
+	if c.UI.Layout != LayoutClassic {
+		c.UI.Layout = LayoutFit
 	}
 	if c.UI.Footer != FooterInfo {
 		c.UI.Footer = FooterGuide
