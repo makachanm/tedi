@@ -26,6 +26,7 @@ const (
 	itemHeight
 	itemFooter
 	itemRefresh
+	itemLimit
 	itemLogin
 	itemLogout
 	itemSave
@@ -77,7 +78,7 @@ func (v *settingsView) items() []settingsItem {
 	if v.cfg.UI.Layout != config.LayoutFit {
 		items = append(items, itemHeight)
 	}
-	items = append(items, itemFooter, itemRefresh, itemLogin)
+	items = append(items, itemFooter, itemRefresh, itemLimit, itemLogin)
 	if v.cfg.Session.LoggedIn() {
 		items = append(items, itemLogout)
 	}
@@ -98,6 +99,8 @@ func (v *settingsView) label(item settingsItem) string {
 		return fmt.Sprintf("%-17s < %s >", "Footer", v.cfg.UI.Footer)
 	case itemRefresh:
 		return fmt.Sprintf("%-17s < %s >", "Auto refresh", refreshText(v.cfg.UI.Refresh))
+	case itemLimit:
+		return fmt.Sprintf("%-17s < %d >", "Items per load", v.cfg.UI.Limit)
 	case itemLogin:
 		if v.cfg.Session.LoggedIn() {
 			return "Log in again"
@@ -137,6 +140,14 @@ func (v *settingsView) adjustRefresh(delta int) {
 	v.cfg.UI.Refresh = config.RefreshSteps[i]
 }
 
+func (v *settingsView) adjustLimit(delta int) {
+	i := slices.Index(config.LimitSteps, v.cfg.UI.Limit) + delta
+	if i < 0 || i >= len(config.LimitSteps) {
+		return
+	}
+	v.cfg.UI.Limit = config.LimitSteps[i]
+}
+
 func (v *settingsView) toggle(item settingsItem) {
 	switch item {
 	case itemLayout:
@@ -171,6 +182,8 @@ func (v *settingsView) hint(item settingsItem) string {
 			return "Timeline and notifications refresh only when you press m."
 		}
 		return "Timeline and notifications reload every " + refreshText(v.cfg.UI.Refresh) + "."
+	case itemLimit:
+		return fmt.Sprintf("Load up to %d notes or notifications at a time. Larger numbers take more requests.", v.cfg.UI.Limit)
 	}
 	return ""
 }
@@ -212,6 +225,8 @@ func (v *settingsView) handleKey(ev *tcell.EventKey) (SettingsAction, bool) {
 			v.adjustHeight(-1)
 		case itemRefresh:
 			v.adjustRefresh(-1)
+		case itemLimit:
+			v.adjustLimit(-1)
 		}
 	case ev.Key() == tcell.KeyRight || (ev.Key() == tcell.KeyRune && (ev.Rune() == '+' || ev.Rune() == '=')):
 		switch selected {
@@ -221,6 +236,8 @@ func (v *settingsView) handleKey(ev *tcell.EventKey) (SettingsAction, bool) {
 			v.adjustHeight(1)
 		case itemRefresh:
 			v.adjustRefresh(1)
+		case itemLimit:
+			v.adjustLimit(1)
 		}
 
 	case ev.Key() == tcell.KeyEnter:

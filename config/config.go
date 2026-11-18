@@ -24,6 +24,10 @@ const (
 
 var RefreshSteps = []int{RefreshOff, 10, 20, 30, 60, 120, 300}
 
+const DefaultLimit = 40
+
+var LimitSteps = []int{20, 40, 60, 80, 100, 150, 200}
+
 type Configuration struct {
 	Session SessionConfiguration `json:"session"`
 	UI      UIConfiguration      `json:"ui"`
@@ -34,6 +38,7 @@ type UIConfiguration struct {
 	Layout        string `json:"layout"`
 	Footer        string `json:"footer"`
 	Refresh       int    `json:"refresh"`
+	Limit         int    `json:"limit"`
 }
 
 const (
@@ -95,5 +100,8 @@ func (c *Configuration) applyDefaults() {
 	}
 	if !slices.Contains(RefreshSteps, c.UI.Refresh) {
 		c.UI.Refresh = DefaultRefresh
+	}
+	if !slices.Contains(LimitSteps, c.UI.Limit) {
+		c.UI.Limit = DefaultLimit
 	}
 }
