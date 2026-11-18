@@ -43,7 +43,7 @@ sudo=""
 if [ -z "$dir" ]; then
 	if [ -w /usr/local/bin ]; then
 		dir=/usr/local/bin
-	elif command -v sudo >/dev/null 2>&1; then
+	elif command -v sudo >/dev/null 2>&1 && { sudo -n true 2>/dev/null || (: </dev/tty) 2>/dev/null; }; then
 		dir=/usr/local/bin
 		sudo=sudo
 	else
