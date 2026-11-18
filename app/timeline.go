@@ -117,11 +117,11 @@ func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Ap
 			ctx.TranslateTo("main-help")
 			return
 
-		case "1":
+		case "f2":
 			ts.switchTimeline(CURRUNTTL_HOME)
-		case "2":
+		case "f3":
 			ts.switchTimeline(CURRUNTTL_LOCAL)
-		case "3":
+		case "f4":
 			ts.switchTimeline(CURRUNTTL_GLOBAL)
 
 		case "z":

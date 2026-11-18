@@ -26,6 +26,12 @@ func keyName(ev *tcell.EventKey) string {
 		return "tab"
 	case tcell.KeyF1:
 		return "f1"
+	case tcell.KeyF2:
+		return "f2"
+	case tcell.KeyF3:
+		return "f3"
+	case tcell.KeyF4:
+		return "f4"
 	case tcell.KeyCtrlC:
 		return "C-c"
 	}

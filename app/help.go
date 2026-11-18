@@ -25,7 +25,7 @@ func NewTimelineHelp() *HelpScreen {
 		{"x", "react to selected note"},
 		{"c", "renote selected note"},
 		{"z", "show or hide CW content"},
-		{"1  2  3", "home / local / global timeline"},
+		{"F2  F3  F4", "home / local / global timeline"},
 		{"q", "refresh"},
 		{"Tab", "notifications"},
 		{"F1", "this guide"},
