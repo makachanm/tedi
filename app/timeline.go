@@ -149,7 +149,7 @@ func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Ap
 				ts.notice = actOnNote(ts.FetchLayer, note, keyName(ev) == "x")
 			}
 
-		case "n", "tab":
+		case "tab":
 			ctx.TranslateTo("noti")
 
 		case "left", "h", "pgup":
@@ -209,7 +209,7 @@ func (ts *TimelineScreen) drawNotes(screen tcell.Screen, ctx ApplicationContext)
 		info += " · " + ts.notice
 	}
 	footer := footerText(ts.config.UI, info,
-		"[Esc] Quit | [m] Refresh | [n] Notifications | [x] React | [c] Renote | [Up/Down] Select | [<-/->] Page | [1-3] Timeline | [z] CW")
+		"[Esc] Quit | [m] Refresh | [Tab] Notifications | [x] React | [c] Renote | [Up/Down] Select | [<-/->] Page | [1-3] Timeline | [z] CW")
 
 	ctx.DrawFooterbar(footer)
 }

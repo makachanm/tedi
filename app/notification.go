@@ -68,7 +68,7 @@ func (ns *NotificationScreen) DoScene(screen tcell.Screen, event tcell.Event, ct
 		case "m":
 			ns.refreshData()
 
-		case "n", "tab", "esc":
+		case "tab", "esc":
 			ctx.TranslateTo("main")
 
 		case "up", "k":
@@ -135,7 +135,7 @@ func (ns *NotificationScreen) drawNotis(screen tcell.Screen, ctx ApplicationCont
 	page, total := ns.Notifications.GetCurruntPagePointer()+1, ns.Notifications.GetTotalPage()+1
 	footer := footerText(ns.config.UI,
 		fmt.Sprintf("Noti Page %d/%d", page, total),
-		"[Esc] Back | [m] Refresh | [Up/Down] Select | [<-/->] Page")
+		"[Tab/Esc] Back | [m] Refresh | [Up/Down] Select | [<-/->] Page")
 
 	ctx.DrawFooterbar(footer)
 }
