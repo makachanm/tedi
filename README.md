@@ -30,15 +30,16 @@ Settings are saved to `~/.config/tedi/config.json`.
 The access token is kept in the system keyring (Secret Service, Keychain, Credential Manager) when one is available, and in the config file (mode 600) otherwise.
 
 ## Keys
-| Key | Timeline | Notifications | Note |
-|---|---|---|---|
-| `Esc` | quit | back | back |
-| `Enter` | open note | open note | |
-| `Tab` | notifications | | |
-| `x` / `c` | react / renote | | react / renote |
-| `q` | refresh | refresh | |
-| `F2` `F3` `F4` | home / local / global timeline | | |
-| `z` | show CW | | |
-| `↑` `↓` / `j` `k` | select | select | scroll |
-| `←` `→` / `h` `l` | page | page | page |
-| `F1` | key guide | key guide | key guide |
+| Key | Timeline | Notifications | Profile | Note |
+|---|---|---|---|---|
+| `Esc` | quit | back | back | back |
+| `Enter` | open note | open note | open note | |
+| `w` | notifications | | | |
+| `e` | my profile | | | |
+| `x` / `c` | react / renote | | react / renote | react / renote |
+| `q` | refresh | refresh | refresh | |
+| `F2` `F3` `F4` | home / local / global timeline | | | |
+| `z` | show CW | | | |
+| `↑` `↓` / `j` `k` | select | select | select | scroll |
+| `←` `→` / `h` `l` | page | page | page | page |
+| `F1` | key guide | key guide | key guide | key guide |

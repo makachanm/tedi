@@ -350,10 +350,12 @@ func runClient(args []string) error {
 	detail := app.NewNoteScreen(cfg, client)
 	m.RegisterScene("main", app.NewTimelineScreen(cfg, client, detail))
 	m.RegisterScene("noti", app.NewNotificationScreen(cfg, client, detail))
+	m.RegisterScene("profile", app.NewProfileScreen(cfg, client, detail))
 	m.RegisterScene("note", detail)
 	m.RegisterScene("main-help", app.NewTimelineHelp())
 	m.RegisterScene("noti-help", app.NewNotificationHelp())
 	m.RegisterScene("note-help", app.NewNoteHelp())
+	m.RegisterScene("profile-help", app.NewProfileHelp())
 	m.Mainloop()
 	return nil
 }

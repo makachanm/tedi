@@ -158,8 +158,12 @@ func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Ap
 				return
 			}
 
-		case "tab":
+		case "w":
 			ctx.TranslateTo("noti")
+			return
+
+		case "e":
+			ctx.TranslateTo("profile")
 			return
 
 		case "left", "h", "pgup":

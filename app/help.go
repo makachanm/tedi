@@ -27,7 +27,8 @@ func NewTimelineHelp() *HelpScreen {
 		{"z", "show or hide CW content"},
 		{"F2  F3  F4", "home / local / global timeline"},
 		{"q", "refresh"},
-		{"Tab", "notifications"},
+		{"w", "notifications"},
+		{"e", "my profile"},
 		{"F1", "this guide"},
 		{"Esc", "quit"},
 	}}
@@ -38,6 +39,19 @@ func NewNotificationHelp() *HelpScreen {
 		{"Up / Down, k / j", "select notification"},
 		{"Left / Right, h / l", "previous / next page"},
 		{"Enter", "open the note it refers to"},
+		{"q", "refresh"},
+		{"F1", "this guide"},
+		{"Esc", "back to timeline"},
+	}}
+}
+
+func NewProfileHelp() *HelpScreen {
+	return &HelpScreen{title: "Profile", back: "profile", keys: []helpEntry{
+		{"Up / Down, k / j", "select note"},
+		{"Left / Right, h / l", "previous / next page"},
+		{"Enter", "open note and its thread"},
+		{"x", "react to selected note"},
+		{"c", "renote selected note"},
 		{"q", "refresh"},
 		{"F1", "this guide"},
 		{"Esc", "back to timeline"},
