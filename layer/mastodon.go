@@ -5,22 +5,27 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 )
 
-const mastodonTimelineLimit = "40"
+const (
+	mastodonTimelinePage     = 40
+	mastodonNotificationPage = 80
+)
 
 type MastodonFetch struct {
 	token        string
 	instance_url *url.URL
+	limit        int
 }
 
-func NewMastodonFetch(token string, insurl string) (*MastodonFetch, error) {
+func NewMastodonFetch(token string, insurl string, limit int) (*MastodonFetch, error) {
 
 	u, err := url.Parse(insurl)
 	if err != nil {
 		return nil, fmt.Errorf("invalid instance url %q: %w", insurl, err)
 	}
-	return &MastodonFetch{token: token, instance_url: u}, nil
+	return &MastodonFetch{token: token, instance_url: u, limit: limit}, nil
 }
 
 func (m *MastodonFetch) request(method string, path string, query url.Values) ([]byte, error) {
@@ -74,44 +79,64 @@ func (n *MastodonNote) toNote() Note {
 }
 
 func (m *MastodonFetch) timeline(path string, query url.Values) []Note {
-	d, err := m.request(http.MethodGet, path, query)
-	if err != nil {
-		return nil
-	}
+	var notes []Note
+	for len(notes) < m.limit {
+		page := min(m.limit-len(notes), mastodonTimelinePage)
+		query.Set("limit", strconv.Itoa(page))
 
-	var mNotes []MastodonNote
-	if err := json.Unmarshal(d, &mNotes); err != nil {
-		return nil
-	}
+		d, err := m.request(http.MethodGet, path, query)
+		if err != nil {
+			break
+		}
 
-	notes := make([]Note, 0, len(mNotes))
-	for i := range mNotes {
-		notes = append(notes, mNotes[i].toNote())
+		var mNotes []MastodonNote
+		if err := json.Unmarshal(d, &mNotes); err != nil {
+			break
+		}
+		for i := range mNotes {
+			notes = append(notes, mNotes[i].toNote())
+		}
+		if len(mNotes) < page {
+			break
+		}
+		query.Set("max_id", mNotes[len(mNotes)-1].Id)
 	}
 	return notes
 }
 
 func (m *MastodonFetch) GetGlobalTimeline() []Note {
-	return m.timeline("api/v1/timelines/public", url.Values{"limit": {mastodonTimelineLimit}})
+	return m.timeline("api/v1/timelines/public", url.Values{})
 }
 
 func (m *MastodonFetch) GetLocalTimeline() []Note {
-	return m.timeline("api/v1/timelines/public", url.Values{"local": {"true"}, "limit": {mastodonTimelineLimit}})
+	return m.timeline("api/v1/timelines/public", url.Values{"local": {"true"}})
 }
 
 func (m *MastodonFetch) GetHomeTimeline() []Note {
-	return m.timeline("api/v1/timelines/home", url.Values{"limit": {mastodonTimelineLimit}})
+	return m.timeline("api/v1/timelines/home", url.Values{})
 }
 
 func (m *MastodonFetch) GetNotifications() []Notification {
-	d, err := m.request(http.MethodGet, "api/v1/notifications", nil)
-	if err != nil {
-		return nil
-	}
-
 	var mnotis []MastodonNotification
-	if err := json.Unmarshal(d, &mnotis); err != nil {
-		return nil
+	query := url.Values{}
+	for len(mnotis) < m.limit {
+		page := min(m.limit-len(mnotis), mastodonNotificationPage)
+		query.Set("limit", strconv.Itoa(page))
+
+		d, err := m.request(http.MethodGet, "api/v1/notifications", query)
+		if err != nil {
+			break
+		}
+
+		var got []MastodonNotification
+		if err := json.Unmarshal(d, &got); err != nil {
+			break
+		}
+		mnotis = append(mnotis, got...)
+		if len(got) < page {
+			break
+		}
+		query.Set("max_id", got[len(got)-1].Id)
 	}
 
 	notis := make([]Notification, 0, len(mnotis))

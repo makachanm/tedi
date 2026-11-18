@@ -8,7 +8,7 @@ import (
 	"net/url"
 )
 
-const misskeyTimelineLimit = 100
+const misskeyPage = 100
 const misskeyThreadRequests = 20
 
 const misskeyDefaultReaction = "❤"
@@ -16,15 +16,16 @@ const misskeyDefaultReaction = "❤"
 type MisskeyFetch struct {
 	token        string
 	instance_url *url.URL
+	limit        int
 }
 
-func NewMisskeyFetch(token string, insurl string) (*MisskeyFetch, error) {
+func NewMisskeyFetch(token string, insurl string, limit int) (*MisskeyFetch, error) {
 
 	u, err := url.Parse(insurl)
 	if err != nil {
 		return nil, fmt.Errorf("invalid instance url %q: %w", insurl, err)
 	}
-	return &MisskeyFetch{token: token, instance_url: u}, nil
+	return &MisskeyFetch{token: token, instance_url: u, limit: limit}, nil
 }
 
 func (m *MisskeyFetch) request(path string, body any) ([]byte, error) {
@@ -93,19 +94,28 @@ func (n *MisskeyNote) toNote() Note {
 }
 
 func (m *MisskeyFetch) timeline(path string) []Note {
-	d, err := m.request(path, map[string]any{"limit": misskeyTimelineLimit})
-	if err != nil {
-		return nil
-	}
+	var notes []Note
+	body := map[string]any{}
+	for len(notes) < m.limit {
+		page := min(m.limit-len(notes), misskeyPage)
+		body["limit"] = page
 
-	var mnotes []MisskeyNote
-	if err := json.Unmarshal(d, &mnotes); err != nil {
-		return nil
-	}
+		d, err := m.request(path, body)
+		if err != nil {
+			break
+		}
 
-	notes := make([]Note, 0, len(mnotes))
-	for i := range mnotes {
-		notes = append(notes, mnotes[i].toNote())
+		var mnotes []MisskeyNote
+		if err := json.Unmarshal(d, &mnotes); err != nil {
+			break
+		}
+		for i := range mnotes {
+			notes = append(notes, mnotes[i].toNote())
+		}
+		if len(mnotes) < page {
+			break
+		}
+		body["untilId"] = mnotes[len(mnotes)-1].Id
 	}
 	return notes
 }
@@ -138,14 +148,26 @@ func misskeyNotiTypeToValue(s string) NotificationType {
 }
 
 func (m *MisskeyFetch) GetNotifications() []Notification {
-	d, err := m.request("api/i/notifications", map[string]any{"limit": misskeyTimelineLimit})
-	if err != nil {
-		return nil
-	}
-
 	var mnotis []MisskeyNotification
-	if err := json.Unmarshal(d, &mnotis); err != nil {
-		return nil
+	body := map[string]any{}
+	for len(mnotis) < m.limit {
+		page := min(m.limit-len(mnotis), misskeyPage)
+		body["limit"] = page
+
+		d, err := m.request("api/i/notifications", body)
+		if err != nil {
+			break
+		}
+
+		var got []MisskeyNotification
+		if err := json.Unmarshal(d, &got); err != nil {
+			break
+		}
+		mnotis = append(mnotis, got...)
+		if len(got) < page {
+			break
+		}
+		body["untilId"] = got[len(got)-1].Id
 	}
 
 	notis := make([]Notification, 0, len(mnotis))

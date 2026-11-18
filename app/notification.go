@@ -25,7 +25,7 @@ type NotificationScreen struct {
 
 func NewNotificationScreen(cfg config.Configuration, client layer.Client, detail *NoteScreen) *NotificationScreen {
 	ts := new(NotificationScreen)
-	ts.Notifications = newPagedList(cfg.UI, 40, func(noti layer.Notification, screenW int) int {
+	ts.Notifications = newPagedList(cfg.UI, cfg.UI.Limit, func(noti layer.Notification, screenW int) int {
 		return component.NotificationHeight(noti, screenW, 1)
 	})
 	ts.FetchLayer = client

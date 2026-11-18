@@ -20,12 +20,12 @@ type Client interface {
 	PostReaction(note_id string) bool
 }
 
-func New(kind string, instanceURL string, token string) (Client, error) {
+func New(kind string, instanceURL string, token string, limit int) (Client, error) {
 	switch kind {
 	case "mastodon":
-		return NewMastodonFetch(token, instanceURL)
+		return NewMastodonFetch(token, instanceURL, limit)
 	case "misskey":
-		return NewMisskeyFetch(token, instanceURL)
+		return NewMisskeyFetch(token, instanceURL, limit)
 	default:
 		return nil, fmt.Errorf("unsupported session type %q", kind)
 	}

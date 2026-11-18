@@ -337,7 +337,7 @@ func runClient(args []string) error {
 		return err
 	}
 
-	client, err := layer.New(string(cfg.Session.Type), cfg.Session.Url, cfg.Session.Token)
+	client, err := layer.New(string(cfg.Session.Type), cfg.Session.Url, cfg.Session.Token, cfg.UI.Limit)
 	if err != nil {
 		return err
 	}

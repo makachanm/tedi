@@ -63,11 +63,7 @@ type TimelineScreen struct {
 func NewTimelineScreen(cfg config.Configuration, client layer.Client, detail *NoteScreen) *TimelineScreen {
 	ts := new(TimelineScreen)
 
-	limit := 40
-	if cfg.Session.Type == config.Misskey {
-		limit = 100
-	}
-	ts.Timelines = newPagedList(cfg.UI, limit, func(note layer.Note, screenW int) int {
+	ts.Timelines = newPagedList(cfg.UI, cfg.UI.Limit, func(note layer.Note, screenW int) int {
 		return component.NoteHeight(note, screenW, 1, ts.showcw)
 	})
 	ts.FetchLayer = client
