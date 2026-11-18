@@ -52,6 +52,7 @@ func NewProfileHelp() *HelpScreen {
 		{"Enter", "open note and its thread"},
 		{"x", "react to selected note"},
 		{"c", "renote selected note"},
+		{"z", "show or hide CW content"},
 		{"q", "refresh"},
 		{"F1", "this guide"},
 		{"Esc", "back to timeline"},

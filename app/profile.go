@@ -21,6 +21,7 @@ type ProfileScreen struct {
 	profile layer.Profile
 	header  int
 	loaded  bool
+	showcw  bool
 	notice  string
 	screenW int
 	screenH int
@@ -29,7 +30,7 @@ type ProfileScreen struct {
 func NewProfileScreen(cfg config.Configuration, client layer.Client, detail *NoteScreen) *ProfileScreen {
 	ps := new(ProfileScreen)
 	ps.Notes = newPagedList(cfg.UI, cfg.UI.Limit, func(note layer.Note, screenW int) int {
-		return component.NoteHeight(note, screenW, 1, false)
+		return component.NoteHeight(note, screenW, 1, ps.showcw)
 	})
 	ps.FetchLayer = client
 	ps.detail = detail
@@ -95,6 +96,12 @@ func (ps *ProfileScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx App
 		case "q":
 			ps.refreshData(screen)
 
+		case "z":
+			ps.notelock.Lock()
+			ps.showcw = !ps.showcw
+			ps.Notes.layout()
+			ps.notelock.Unlock()
+
 		case "up", "k":
 			ps.notelock.Lock()
 			ps.Notes.moveCursor(-1)
@@ -151,7 +158,7 @@ func (ps *ProfileScreen) drawProfile(screen tcell.Screen, ctx ApplicationContext
 
 	for i, note := range ps.Notes.GetCurruntPage() {
 		height := ps.Notes.height(note)
-		component.DrawNoteComponent(1, y, note, screen, textStyle, height, false, i == ps.Notes.cursor)
+		component.DrawNoteComponent(1, y, note, screen, textStyle, height, ps.showcw, i == ps.Notes.cursor)
 		y += height
 	}
 
