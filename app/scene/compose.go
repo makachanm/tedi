@@ -18,6 +18,7 @@ type ComposeScreen struct {
 	config     config.Configuration
 
 	text       string
+	initial    string
 	visibility layer.Visiblity
 	reply      *layer.Note
 	notice     string
@@ -40,7 +41,11 @@ func (cs *ComposeScreen) open(reply *layer.Note) {
 	cs.visibility = configVisibility(cs.config.UI.Visibility)
 	if reply != nil {
 		cs.visibility = reply.Visiblity
+		if reply.Author_finger != "" && reply.Author_finger != cs.config.Session.Account {
+			cs.text = "@" + reply.Author_finger + " "
+		}
 	}
+	cs.initial = strings.TrimSpace(cs.text)
 	cs.notice = ""
 	cs.confirm = false
 	cs.pending = true
@@ -177,7 +182,7 @@ func (cs *ComposeScreen) post(ctx app.ApplicationContext) bool {
 }
 
 func (cs *ComposeScreen) discard(ctx app.ApplicationContext) bool {
-	if strings.TrimSpace(cs.text) != "" && !cs.confirm {
+	if strings.TrimSpace(cs.text) != cs.initial && !cs.confirm {
 		cs.confirm = true
 		cs.notice = "Press again to discard"
 		return false
