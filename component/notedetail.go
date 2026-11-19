@@ -98,7 +98,7 @@ func threadEntryLines(note layer.Note, depth int, width int, style tcell.Style) 
 	}
 	header := name + " @" + note.Author_finger
 	if t := relativeTime(note.Time); t != "" {
-		header += " · " + t
+		header += "  " + t
 	}
 
 	var lines []line
@@ -138,7 +138,7 @@ func noteDetailLines(note layer.Note, width int, style tcell.Style) []line {
 		meta = append(meta, note.Time.Local().Format("2006-01-02 15:04"))
 	}
 	meta = append(meta, strings.ToLower(layer.VisiblityToText(note.Visiblity)))
-	lines = append(lines, wrapLines(strings.Join(meta, " · "), width, dim)...)
+	lines = append(lines, wrapLines(strings.Join(meta, "  "), width, dim)...)
 	lines = append(lines, line{"", style})
 
 	if note.Spoiler != "" {
@@ -161,6 +161,6 @@ func noteDetailLines(note layer.Note, width int, style tcell.Style) []line {
 	}
 
 	lines = append(lines, line{"", style})
-	lines = append(lines, line{plural(note.RenoteCount, "renote") + " · " + plural(note.ReactionCount, "fav"), dim})
+	lines = append(lines, line{plural(note.RenoteCount, "renote") + "  " + plural(note.ReactionCount, "fav"), dim})
 	return lines
 }

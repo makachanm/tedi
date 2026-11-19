@@ -57,6 +57,6 @@ func profileLines(profile layer.Profile, width int, style tcell.Style) []line {
 		fmt.Sprintf("%d following", profile.FollowingCount),
 		plural(profile.FollowersCount, "follower"),
 	}
-	lines = append(lines, line{strings.Join(stats, " · "), dim})
+	lines = append(lines, line{strings.Join(stats, "  "), dim})
 	return append(lines, line{strings.Repeat("─", width), dim})
 }

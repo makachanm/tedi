@@ -45,7 +45,7 @@ func DrawNoteComponent(x int, y int, note layer.Note, ctx tcell.Screen, style tc
 	if note.ReactionCount > 0 {
 		meta = append(meta, plural(note.ReactionCount, "fav"))
 	}
-	writeSegments(ctx, x+1, metaRow, width, []segment{{strings.Join(meta, " · "), dim}})
+	writeSegments(ctx, x+1, metaRow, width, []segment{{strings.Join(meta, "  "), dim}})
 }
 
 func NoteHeight(note layer.Note, screenW int, x int, viewcw bool) int {
