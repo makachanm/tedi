@@ -132,5 +132,5 @@ func (ms *MenuScreen) draw(screen tcell.Screen, ctx app.ApplicationContext) {
 	}
 	component.DrawMenu(1, 1, items, ms.cursor, screen, style)
 
-	ctx.DrawFooterbar(footerText("Menu", "Back"))
+	ctx.DrawFooterbar(footerText("Menu", "[Esc] Back"))
 }

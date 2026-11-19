@@ -191,5 +191,5 @@ func (ps *ProfileScreen) drawProfile(screen tcell.Screen, ctx app.ApplicationCon
 	if ps.notice != "" {
 		info += " | " + ps.notice
 	}
-	ctx.DrawFooterbar(footerText(info, "Back"))
+	ctx.DrawFooterbar(footerText(info, "[Esc] Back  [q] Refresh  [z] CW"))
 }

@@ -210,7 +210,7 @@ func (ts *TimelineScreen) drawNotes(screen tcell.Screen, ctx app.ApplicationCont
 	if ts.notice != "" {
 		info += " | " + ts.notice
 	}
-	ctx.DrawFooterbar(footerText(info, "Menu"))
+	ctx.DrawFooterbar(footerText(info, "[Esc] Menu  [q] Refresh  [z] CW"))
 }
 
 func actOnNote(client layer.Client, note layer.Note, react bool) string {

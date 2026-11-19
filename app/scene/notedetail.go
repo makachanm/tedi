@@ -174,5 +174,5 @@ func (ns *NoteScreen) drawNote(screen tcell.Screen, ctx app.ApplicationContext) 
 	if ns.notice != "" {
 		info += " | " + ns.notice
 	}
-	ctx.DrawFooterbar(footerText(info, "Back"))
+	ctx.DrawFooterbar(footerText(info, "[Esc] Back"))
 }

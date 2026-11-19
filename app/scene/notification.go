@@ -149,5 +149,5 @@ func (ns *NotificationScreen) drawNotis(screen tcell.Screen, ctx app.Application
 	}
 
 	page, total := ns.Notifications.GetCurruntPagePointer()+1, ns.Notifications.GetTotalPage()+1
-	ctx.DrawFooterbar(footerText(fmt.Sprintf("Noti Page %d/%d", page, total), "Back"))
+	ctx.DrawFooterbar(footerText(fmt.Sprintf("Noti Page %d/%d", page, total), "[Esc] Back  [q] Refresh"))
 }

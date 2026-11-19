@@ -264,5 +264,5 @@ func (cs *ComposeScreen) draw(screen tcell.Screen, ctx app.ApplicationContext) {
 	if cs.notice != "" {
 		info += " | " + cs.notice
 	}
-	ctx.DrawFooterbar(footerText(info, "Back"))
+	ctx.DrawFooterbar(footerText(info, "[Esc] Back"))
 }

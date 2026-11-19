@@ -11,8 +11,8 @@ func refreshInterval(ui config.UIConfiguration) time.Duration {
 	return time.Duration(ui.Refresh) * time.Second
 }
 
-func footerText(info string, esc string) string {
-	return " " + info + " | [Esc] " + esc
+func footerText(info string, keys string) string {
+	return " " + info + " | " + keys
 }
 
 func keyName(ev *tcell.EventKey) string {
