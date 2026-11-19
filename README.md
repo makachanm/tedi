@@ -14,18 +14,10 @@ go build .
 
 ## Usage
 ```
-tedi login mastodon.social
-tedi
+tedi login mastodon.social   # log in
+tedi                         # open the client
+tedi config                  # settings
+tedi status                  # current account
+tedi logout                  # log out
+tedi help                    # all commands and options
 ```
-
-`tedi login` opens your browser to authorize the app. 
-
-`tedi config` opens the settings screen.
-
-`tedi status` shows the current account.
-
-`tedi logout` revokes the token.
-
-Settings are saved to `~/.config/tedi/config.json`.
-The access token is kept in the system keyring (Secret Service, Keychain, Credential Manager) when one is available, and in the config file (mode 600) otherwise.
-Notes are written in `$VISUAL` or `$EDITOR` (default `vi`).
