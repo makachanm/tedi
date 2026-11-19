@@ -17,7 +17,10 @@ type noteView struct {
 
 	scroll int
 	jump   bool
+	action int
 }
+
+var noteActions = []string{"Reply", "React", "Renote", "Author"}
 
 type NoteScreen struct {
 	noteView
@@ -75,6 +78,33 @@ func (ns *NoteScreen) InitScene(screen tcell.Screen, ctx ApplicationContext) {
 func (ns *NoteScreen) WindowChangedScene(screen tcell.Screen, ctx ApplicationContext) {
 }
 
+func (ns *NoteScreen) runAction(action int, ctx ApplicationContext) bool {
+	switch noteActions[action] {
+	case "Reply":
+		if ns.note.Id == "" {
+			return false
+		}
+		restore := ns.snapshot()
+		reply := ns.note
+		ns.compose.open(&reply)
+		ctx.Forward("compose", restore)
+		return true
+	case "React":
+		ns.notice = actOnNote(ns.FetchLayer, ns.note, true)
+	case "Renote":
+		ns.notice = actOnNote(ns.FetchLayer, ns.note, false)
+	case "Author":
+		if ns.note.Author_id == "" {
+			return false
+		}
+		restore := ns.snapshot()
+		ns.profile.open(ns.note.Author_id)
+		ctx.Forward("profile", restore)
+		return true
+	}
+	return false
+}
+
 func (ns *NoteScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx ApplicationContext) {
 	if ev, ok := event.(*tcell.EventKey); ok {
 		ns.notice = ""
@@ -90,33 +120,37 @@ func (ns *NoteScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Applic
 			ctx.Forward("note-help", nil)
 			return
 
+		case "tab":
+			ctx.Forward("noti", ns.snapshot())
+			return
+
+		case "left", "h":
+			ns.action = max(ns.action-1, 0)
+		case "right", "l":
+			ns.action = min(ns.action+1, len(noteActions)-1)
+
 		case "enter":
-			if ns.note.Author_id != "" {
-				restore := ns.snapshot()
-				ns.profile.open(ns.note.Author_id)
-				ctx.Forward("profile", restore)
+			if ns.runAction(ns.action, ctx) {
 				return
 			}
 
 		case "r":
-			if ns.note.Id != "" {
-				reply := ns.note
-				ns.compose.open(&reply)
-				ctx.Forward("compose", ns.snapshot())
+			if ns.runAction(0, ctx) {
 				return
 			}
+		case "x":
+			ns.runAction(1, ctx)
+		case "c":
+			ns.runAction(2, ctx)
 
 		case "up", "k":
 			ns.scroll--
 		case "down", "j":
 			ns.scroll++
-		case "pgup", "left", "h":
+		case "pgup":
 			ns.scroll -= max(ns.rows-1, 1)
-		case "pgdn", "right", "l", " ":
+		case "pgdn", " ":
 			ns.scroll += max(ns.rows-1, 1)
-
-		case "x", "c":
-			ns.notice = actOnNote(ns.FetchLayer, ns.note, keyName(ev) == "x")
 		}
 	}
 
@@ -128,7 +162,8 @@ func (ns *NoteScreen) drawNote(screen tcell.Screen, ctx ApplicationContext) {
 	textStyle := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
 	w, h := screen.Size()
 
-	ns.rows = h - 2
+	ns.rows = h - 4
+	component.DrawActionBar(1, h-2, noteActions, ns.action, screen, textStyle)
 	ns.scroll, ns.total = component.DrawNoteDetail(2, 1, w-4, ns.rows, ns.ancestors, ns.note, ns.replies, screen, textStyle, ns.scroll, ns.jump)
 	ns.jump = false
 
@@ -140,7 +175,7 @@ func (ns *NoteScreen) drawNote(screen tcell.Screen, ctx ApplicationContext) {
 		info += fmt.Sprintf(" %d-%d/%d", ns.scroll+1, min(ns.scroll+ns.rows, ns.total), ns.total)
 	}
 	if ns.notice != "" {
-		info += " · " + ns.notice
+		info += " | " + ns.notice
 	}
-	ctx.DrawFooterbar(footerText(info))
+	ctx.DrawFooterbar(footerText(info, "Back"))
 }

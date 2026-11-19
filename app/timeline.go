@@ -102,6 +102,13 @@ func (ts *TimelineScreen) WindowChangedScene(screen tcell.Screen, ctx Applicatio
 	ts.resize(screen)
 }
 
+func (ts *TimelineScreen) toggleCW() {
+	ts.timelinelock.Lock()
+	defer ts.timelinelock.Unlock()
+	ts.showcw = !ts.showcw
+	ts.Timelines.layout()
+}
+
 func (ts *TimelineScreen) switchTimeline(tl CurruntTL) {
 	ts.currunt_tl = tl
 	ts.refreshData()
@@ -115,7 +122,7 @@ func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Ap
 			ctx.Exit(0)
 
 		case "esc":
-			ctx.Back()
+			ctx.Forward("menu", nil)
 			return
 
 		case "q":
@@ -133,10 +140,7 @@ func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Ap
 			ts.switchTimeline(CURRUNTTL_GLOBAL)
 
 		case "z":
-			ts.timelinelock.Lock()
-			ts.showcw = !ts.showcw
-			ts.Timelines.layout()
-			ts.timelinelock.Unlock()
+			ts.toggleCW()
 
 		case "up", "k":
 			ts.timelinelock.Lock()
@@ -166,7 +170,7 @@ func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Ap
 				return
 			}
 
-		case "w":
+		case "tab":
 			ctx.Forward("noti", nil)
 			return
 
@@ -231,9 +235,9 @@ func (ts *TimelineScreen) drawNotes(screen tcell.Screen, ctx ApplicationContext)
 	page, total := ts.Timelines.GetCurruntPagePointer()+1, ts.Timelines.GetTotalPage()+1
 	info := fmt.Sprintf("%s Page %d/%d", curruntTimeline(ts.currunt_tl), page, total)
 	if ts.notice != "" {
-		info += " · " + ts.notice
+		info += " | " + ts.notice
 	}
-	ctx.DrawFooterbar(footerText(info))
+	ctx.DrawFooterbar(footerText(info, "Menu"))
 }
 
 func actOnNote(client layer.Client, note layer.Note, react bool) string {

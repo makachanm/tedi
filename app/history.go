@@ -45,3 +45,7 @@ func (m *MainAppContexts) Back() {
 	}
 	m.transision_signal <- entry.scene
 }
+
+func (m *MainAppContexts) Replace(scene string) {
+	m.transision_signal <- scene
+}

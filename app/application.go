@@ -132,8 +132,8 @@ func refreshInterval(ui config.UIConfiguration) time.Duration {
 	return time.Duration(ui.Refresh) * time.Second
 }
 
-func footerText(info string) string {
-	return " " + info + " | [F1] Help"
+func footerText(info string, esc string) string {
+	return " " + info + " | [Esc] " + esc + "  [F1] Help"
 }
 
 func (m *MainAppContexts) DrawFooterbar(content string) {

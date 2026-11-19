@@ -23,6 +23,7 @@ type ComposeScreen struct {
 	confirm    bool
 	pending    bool
 	scroll     int
+	cursor     int
 }
 
 func NewComposeScreen(cfg config.Configuration, client layer.Client) *ComposeScreen {
@@ -43,6 +44,7 @@ func (cs *ComposeScreen) open(reply *layer.Note) {
 	cs.confirm = false
 	cs.pending = true
 	cs.scroll = 0
+	cs.cursor = 0
 }
 
 func editorCommand() []string {
@@ -104,10 +106,60 @@ func (cs *ComposeScreen) InitScene(screen tcell.Screen, ctx ApplicationContext) 
 func (cs *ComposeScreen) WindowChangedScene(screen tcell.Screen, ctx ApplicationContext) {
 }
 
+var composeItems = []string{"Edit text", "Visibility", "Post", "Discard"}
+
+func visibilityHint(v layer.Visiblity) string {
+	switch v {
+	case layer.VISIBLITY_PUBLIC:
+		return "global: anyone, shown on public timelines."
+	case layer.VISIBLITY_QUIET:
+		return "quiet: anyone, kept off public timelines."
+	case layer.VISIBLITY_FOLLOWER:
+		return "follower-only: your followers only."
+	default:
+		return "direct-only: mentioned users only."
+	}
+}
+
+func (cs *ComposeScreen) hint() string {
+	if composeItems[cs.cursor] == "Visibility" {
+		return visibilityHint(cs.visibility)
+	}
+	return ""
+}
+
+func (cs *ComposeScreen) post(ctx ApplicationContext) bool {
+	if strings.TrimSpace(cs.text) == "" {
+		cs.notice = "Nothing to post"
+		return false
+	}
+	replyTo := ""
+	if cs.reply != nil {
+		replyTo = cs.reply.Id
+	}
+	if err := cs.FetchLayer.PostNote(cs.text, cs.visibility, replyTo); err != nil {
+		cs.notice = "Post failed"
+		return false
+	}
+	ctx.Back()
+	return true
+}
+
+func (cs *ComposeScreen) discard(ctx ApplicationContext) bool {
+	if strings.TrimSpace(cs.text) != "" && !cs.confirm {
+		cs.confirm = true
+		cs.notice = "Press again to discard"
+		return false
+	}
+	ctx.Back()
+	return true
+}
+
 func (cs *ComposeScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx ApplicationContext) {
 	if ev, ok := event.(*tcell.EventKey); ok {
 		key := keyName(ev)
-		if key != "esc" {
+		discarding := key == "esc" || (key == "enter" && composeItems[cs.cursor] == "Discard")
+		if !discarding {
 			cs.confirm = false
 		}
 		cs.notice = ""
@@ -117,44 +169,55 @@ func (cs *ComposeScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx App
 			ctx.Exit(0)
 
 		case "esc":
-			if strings.TrimSpace(cs.text) != "" && !cs.confirm {
-				cs.confirm = true
-				cs.notice = "Press Esc again to discard this note"
-				break
+			if cs.discard(ctx) {
+				return
 			}
-			ctx.Back()
-			return
 
 		case "f1":
 			ctx.Forward("compose-help", nil)
 			return
 
+		case "up", "k":
+			cs.cursor = max(cs.cursor-1, 0)
+		case "down", "j":
+			cs.cursor = min(cs.cursor+1, len(composeItems)-1)
+
+		case "left", "h":
+			if composeItems[cs.cursor] == "Visibility" {
+				cs.visibility = (cs.visibility+2)%layer.VISIBLITY_DIRECT + 1
+			}
+		case "right", "l":
+			if composeItems[cs.cursor] == "Visibility" {
+				cs.visibility = cs.visibility%layer.VISIBLITY_DIRECT + 1
+			}
+
 		case "enter":
-			cs.edit(screen)
+			switch composeItems[cs.cursor] {
+			case "Edit text":
+				cs.edit(screen)
+			case "Visibility":
+				cs.visibility = cs.visibility%layer.VISIBLITY_DIRECT + 1
+			case "Post":
+				if cs.post(ctx) {
+					return
+				}
+			case "Discard":
+				if cs.discard(ctx) {
+					return
+				}
+			}
 
 		case "v":
 			cs.visibility = cs.visibility%layer.VISIBLITY_DIRECT + 1
-
 		case "p":
-			if strings.TrimSpace(cs.text) == "" {
-				cs.notice = "Nothing to post"
-				break
+			if cs.post(ctx) {
+				return
 			}
-			replyTo := ""
-			if cs.reply != nil {
-				replyTo = cs.reply.Id
-			}
-			if err := cs.FetchLayer.PostNote(cs.text, cs.visibility, replyTo); err != nil {
-				cs.notice = "Post failed"
-				break
-			}
-			ctx.Back()
-			return
 
-		case "up", "k":
-			cs.scroll--
-		case "down", "j":
-			cs.scroll++
+		case "pgup":
+			cs.scroll -= 5
+		case "pgdn", " ":
+			cs.scroll += 5
 		}
 	}
 
@@ -166,19 +229,29 @@ func (cs *ComposeScreen) draw(screen tcell.Screen, ctx ApplicationContext) {
 	textStyle := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
 	w, h := screen.Size()
 
+	items := make([]component.MenuItem, len(composeItems))
+	for i, label := range composeItems {
+		items[i].Label = label
+	}
+	items[1].Value = strings.ToLower(layer.VisiblityToText(cs.visibility))
+	items[1].Choice = true
+
+	y := 1 + component.DrawMenu(1, 1, items, cs.cursor, screen, textStyle)
+	y += 1 + component.DrawHint(3, y+1, w-6, cs.hint(), screen, textStyle)
+	y++
+
 	author := cs.config.Session.Account
 	if author == "" {
 		author = "me"
 	}
-	cs.scroll = component.DrawComposePreview(2, 1, w-4, h-2, author, cs.text, cs.visibility, cs.reply, screen, textStyle, cs.scroll)
+	cs.scroll = component.DrawComposePreview(2, y, w-4, h-1-y, author, cs.text, cs.visibility, cs.reply, screen, textStyle, cs.scroll)
 
 	info := "Compose"
 	if cs.reply != nil {
 		info = "Reply"
 	}
-	info += " · " + strings.ToLower(layer.VisiblityToText(cs.visibility))
 	if cs.notice != "" {
-		info += " · " + cs.notice
+		info += " | " + cs.notice
 	}
-	ctx.DrawFooterbar(footerText(info))
+	ctx.DrawFooterbar(footerText(info, "Back"))
 }

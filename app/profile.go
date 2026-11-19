@@ -118,6 +118,10 @@ func (ps *ProfileScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx App
 			ctx.Forward("profile-help", nil)
 			return
 
+		case "tab":
+			ctx.Forward("noti", nil)
+			return
+
 		case "q":
 			ps.refreshData(screen)
 
@@ -191,7 +195,7 @@ func (ps *ProfileScreen) drawProfile(screen tcell.Screen, ctx ApplicationContext
 	page, total := ps.notes.GetCurruntPagePointer()+1, ps.notes.GetTotalPage()+1
 	info := fmt.Sprintf("Profile Page %d/%d", page, total)
 	if ps.notice != "" {
-		info += " · " + ps.notice
+		info += " | " + ps.notice
 	}
-	ctx.DrawFooterbar(footerText(info))
+	ctx.DrawFooterbar(footerText(info, "Back"))
 }

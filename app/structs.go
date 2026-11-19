@@ -12,6 +12,7 @@ type ApplicationContext interface {
 	Exit(exitcode int)
 	Forward(scene string, restore func())
 	Back()
+	Replace(scene string)
 	DrawFooterbar(content string)
 	GetCurruntScene() string
 }

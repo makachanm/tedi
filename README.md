@@ -30,20 +30,15 @@ Settings are saved to `~/.config/tedi/config.json`.
 The access token is kept in the system keyring (Secret Service, Keychain, Credential Manager) when one is available, and in the config file (mode 600) otherwise.
 
 ## Keys
-`n` opens your `$VISUAL` / `$EDITOR` (falling back to `vi`) on a temp file. Save and quit to get back to the preview, where `v` changes visibility, `Enter` edits again, and `p` posts.
+| Key | |
+|---|---|
+| `↑` `↓` | select, scroll |
+| `←` `→` | page, change value |
+| `Enter` | open, run |
+| `Esc` / `Backspace` | back, menu on the timeline |
+| `Tab` | notifications |
+| `F1` | keys for the current screen |
 
-| Key | Timeline | Notifications | Profile | Note |
-|---|---|---|---|---|
-| `Esc` | quit | back | back | back |
-| `Enter` | open note | open note / user | open note | author's profile |
-| `n` | write a note | | | |
-| `r` | | | | reply |
-| `w` | notifications | | | |
-| `e` | my profile | | | |
-| `x` / `c` | react / renote | | react / renote | react / renote |
-| `q` | refresh | refresh | refresh | |
-| `F2` `F3` `F4` | home / local / global timeline | | | |
-| `z` | show CW | | show CW | |
-| `↑` `↓` / `j` `k` | select | select | select | scroll |
-| `←` `→` / `h` `l` | page | page | page | page |
-| `F1` | key guide | key guide | key guide | key guide |
+Shortcuts: `x` react, `c` renote, `n` write, `e` profile, `q` refresh, `z` CW, `F2` `F3` `F4` home / local / global.
+
+Writing uses `$VISUAL` or `$EDITOR` (default `vi`).

@@ -18,57 +18,69 @@ type HelpScreen struct {
 
 func NewTimelineHelp() *HelpScreen {
 	return &HelpScreen{title: "Timeline", keys: []helpEntry{
-		{"Up / Down, k / j", "select note"},
-		{"Left / Right, h / l", "previous / next page"},
-		{"Enter", "open note and its thread"},
-		{"x", "react to selected note"},
-		{"c", "renote selected note"},
-		{"z", "show or hide CW content"},
-		{"F2  F3  F4", "home / local / global timeline"},
-		{"q", "refresh"},
-		{"n", "write a new note"},
-		{"w", "notifications"},
+		{"Up / Down", "select note"},
+		{"Left / Right", "previous / next page"},
+		{"Enter", "open note"},
+		{"Tab", "notifications"},
+		{"Esc", "menu"},
+		{"", "Shortcuts"},
+		{"x / c", "react / renote"},
+		{"n", "write a note"},
 		{"e", "my profile"},
-		{"F1", "this guide"},
-		{"Esc", "quit"},
+		{"q", "refresh"},
+		{"z", "show or hide CW"},
+		{"F2 F3 F4", "home / local / global timeline"},
 	}}
 }
 
 func NewNotificationHelp() *HelpScreen {
 	return &HelpScreen{title: "Notifications", keys: []helpEntry{
-		{"Up / Down, k / j", "select notification"},
-		{"Left / Right, h / l", "previous / next page"},
-		{"Enter", "open the note, or the user for follows"},
+		{"Up / Down", "select notification"},
+		{"Left / Right", "previous / next page"},
+		{"Enter", "open note or user"},
+		{"Tab / Esc", "back"},
+		{"", "Shortcuts"},
 		{"q", "refresh"},
-		{"F1", "this guide"},
-		{"Esc", "back"},
 	}}
 }
 
 func NewProfileHelp() *HelpScreen {
 	return &HelpScreen{title: "Profile", keys: []helpEntry{
-		{"Up / Down, k / j", "select note"},
-		{"Left / Right, h / l", "previous / next page"},
-		{"Enter", "open note and its thread"},
-		{"x", "react to selected note"},
-		{"c", "renote selected note"},
-		{"z", "show or hide CW content"},
-		{"q", "refresh"},
-		{"F1", "this guide"},
+		{"Up / Down", "select note"},
+		{"Left / Right", "previous / next page"},
+		{"Enter", "open note"},
+		{"Tab", "notifications"},
 		{"Esc", "back"},
+		{"", "Shortcuts"},
+		{"x / c", "react / renote"},
+		{"q", "refresh"},
+		{"z", "show or hide CW"},
 	}}
 }
 
 func NewNoteHelp() *HelpScreen {
 	return &HelpScreen{title: "Note", keys: []helpEntry{
-		{"Up / Down, k / j", "scroll"},
-		{"Left / Right, h / l", "scroll a page"},
-		{"Enter", "author's profile"},
-		{"r", "reply to this note"},
-		{"x", "react to this note"},
-		{"c", "renote this note"},
-		{"F1", "this guide"},
+		{"Up / Down", "scroll"},
+		{"Left / Right", "choose action"},
+		{"Enter", "run action"},
+		{"Tab", "notifications"},
 		{"Esc", "back"},
+		{"", "Shortcuts"},
+		{"r / x / c", "reply / react / renote"},
+		{"PgUp / PgDn", "scroll a page"},
+	}}
+}
+
+func NewComposeHelp() *HelpScreen {
+	return &HelpScreen{title: "Compose", keys: []helpEntry{
+		{"Up / Down", "select item"},
+		{"Left / Right", "change visibility"},
+		{"Enter", "run item"},
+		{"Esc", "discard"},
+		{"", "Shortcuts"},
+		{"v", "change visibility"},
+		{"p", "post"},
+		{"PgUp / PgDn", "scroll the preview"},
 	}}
 }
 
@@ -105,21 +117,18 @@ func (hs *HelpScreen) draw(screen tcell.Screen, ctx ApplicationContext) {
 	for _, e := range hs.keys {
 		keyW = max(keyW, len(e.key))
 	}
-	for i, e := range hs.keys {
-		utils.WriteTo(screen, 2, 3+i, e.key, normal)
-		utils.WriteTo(screen, 2+keyW+3, 3+i, e.desc, dim)
+	y := 3
+	for _, e := range hs.keys {
+		if e.key == "" {
+			y++
+			utils.WriteTo(screen, 2, y, e.desc, normal.Bold(true))
+			y += 2
+			continue
+		}
+		utils.WriteTo(screen, 2, y, e.key, normal)
+		utils.WriteTo(screen, 2+keyW+3, y, e.desc, dim)
+		y++
 	}
 
-	ctx.DrawFooterbar(" Help · " + hs.title + " | [Esc] Back")
-}
-
-func NewComposeHelp() *HelpScreen {
-	return &HelpScreen{title: "Compose", keys: []helpEntry{
-		{"Enter", "edit in $EDITOR"},
-		{"v", "change visibility"},
-		{"p", "post"},
-		{"Up / Down, k / j", "scroll preview"},
-		{"F1", "this guide"},
-		{"Esc", "discard and go back"},
-	}}
+	ctx.DrawFooterbar(" " + hs.title + " help | [Esc] Back")
 }

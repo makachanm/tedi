@@ -17,7 +17,7 @@ func DrawComposePreview(x int, y int, width int, rows int, author string, text s
 	}
 	dim := dimStyle(style)
 
-	var lines []line
+	lines := []line{{strings.Repeat("─", width), dim}}
 	if reply != nil {
 		lines = append(lines, line{"↩ Replying to @" + reply.Author_finger, style.Foreground(tcell.ColorAqua)})
 		quoted := wrapLines(htmlToText(reply.Content, false), width-2, dim)
@@ -36,7 +36,7 @@ func DrawComposePreview(x int, y int, width int, rows int, author string, text s
 	lines = append(lines, line{"", style})
 
 	if strings.TrimSpace(text) == "" {
-		lines = append(lines, line{"(empty, press Enter to write)", dim})
+		lines = append(lines, line{"(empty)", dim})
 	} else {
 		lines = append(lines, wrapLines(text, width, style)...)
 	}

@@ -73,7 +73,7 @@ func (ns *NotificationScreen) DoScene(screen tcell.Screen, event tcell.Event, ct
 			ctx.Forward("noti-help", nil)
 			return
 
-		case "esc":
+		case "esc", "tab":
 			ctx.Back()
 			return
 
@@ -151,5 +151,5 @@ func (ns *NotificationScreen) drawNotis(screen tcell.Screen, ctx ApplicationCont
 	}
 
 	page, total := ns.Notifications.GetCurruntPagePointer()+1, ns.Notifications.GetTotalPage()+1
-	ctx.DrawFooterbar(footerText(fmt.Sprintf("Noti Page %d/%d", page, total)))
+	ctx.DrawFooterbar(footerText(fmt.Sprintf("Noti Page %d/%d", page, total), "Back"))
 }

@@ -18,7 +18,7 @@ func keyName(ev *tcell.EventKey) string {
 		return "pgup"
 	case tcell.KeyPgDn:
 		return "pgdn"
-	case tcell.KeyEscape:
+	case tcell.KeyEscape, tcell.KeyBackspace, tcell.KeyBackspace2:
 		return "esc"
 	case tcell.KeyEnter:
 		return "enter"
