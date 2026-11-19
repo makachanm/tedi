@@ -26,6 +26,7 @@ const (
 	itemHeight
 	itemRefresh
 	itemLimit
+	itemVisibility
 	itemLogin
 	itemLogout
 	itemSave
@@ -77,7 +78,7 @@ func (v *settingsView) items() []settingsItem {
 	if v.cfg.UI.Layout != config.LayoutFit {
 		items = append(items, itemHeight)
 	}
-	items = append(items, itemRefresh, itemLimit, itemLogin)
+	items = append(items, itemRefresh, itemLimit, itemVisibility, itemLogin)
 	if v.cfg.Session.LoggedIn() {
 		items = append(items, itemLogout)
 	}
@@ -98,6 +99,8 @@ func (v *settingsView) label(item settingsItem) string {
 		return fmt.Sprintf("%-17s < %s >", "Auto refresh", refreshText(v.cfg.UI.Refresh))
 	case itemLimit:
 		return fmt.Sprintf("%-17s < %d >", "Items per load", v.cfg.UI.Limit)
+	case itemVisibility:
+		return fmt.Sprintf("%-17s < %s >", "Note visibility", v.cfg.UI.Visibility)
 	case itemLogin:
 		if v.cfg.Session.LoggedIn() {
 			return "Log in again"
@@ -145,6 +148,14 @@ func (v *settingsView) adjustLimit(delta int) {
 	v.cfg.UI.Limit = config.LimitSteps[i]
 }
 
+func (v *settingsView) adjustVisibility(delta int) {
+	i := slices.Index(config.VisibilitySteps, v.cfg.UI.Visibility) + delta
+	if i < 0 || i >= len(config.VisibilitySteps) {
+		return
+	}
+	v.cfg.UI.Visibility = config.VisibilitySteps[i]
+}
+
 func (v *settingsView) toggle(item settingsItem) {
 	switch item {
 	case itemLayout:
@@ -170,6 +181,8 @@ func (v *settingsView) hint(item settingsItem) string {
 		return "Timeline and notifications reload every " + refreshText(v.cfg.UI.Refresh) + "."
 	case itemLimit:
 		return fmt.Sprintf("Load up to %d notes or notifications at a time. Larger numbers take more requests.", v.cfg.UI.Limit)
+	case itemVisibility:
+		return visibilityHint(configVisibility(v.cfg.UI.Visibility))
 	}
 	return ""
 }
@@ -213,6 +226,8 @@ func (v *settingsView) handleKey(ev *tcell.EventKey) (SettingsAction, bool) {
 			v.adjustRefresh(-1)
 		case itemLimit:
 			v.adjustLimit(-1)
+		case itemVisibility:
+			v.adjustVisibility(-1)
 		}
 	case ev.Key() == tcell.KeyRight || (ev.Key() == tcell.KeyRune && (ev.Rune() == '+' || ev.Rune() == '=')):
 		switch selected {
@@ -224,6 +239,8 @@ func (v *settingsView) handleKey(ev *tcell.EventKey) (SettingsAction, bool) {
 			v.adjustRefresh(1)
 		case itemLimit:
 			v.adjustLimit(1)
+		case itemVisibility:
+			v.adjustVisibility(1)
 		}
 
 	case ev.Key() == tcell.KeyEnter:

@@ -37,7 +37,7 @@ func NewComposeScreen(cfg config.Configuration, client layer.Client) *ComposeScr
 func (cs *ComposeScreen) open(reply *layer.Note) {
 	cs.text = ""
 	cs.reply = reply
-	cs.visibility = layer.VISIBLITY_PUBLIC
+	cs.visibility = configVisibility(cs.config.UI.Visibility)
 	if reply != nil {
 		cs.visibility = reply.Visiblity
 	}
@@ -128,6 +128,15 @@ func composeLabel(item composeItem) string {
 		return "Discard"
 	}
 	return ""
+}
+
+func configVisibility(name string) layer.Visiblity {
+	for v := layer.VISIBLITY_PUBLIC; v <= layer.VISIBLITY_DIRECT; v++ {
+		if strings.ToLower(layer.VisiblityToText(v)) == name {
+			return v
+		}
+	}
+	return layer.VISIBLITY_PUBLIC
 }
 
 func visibilityHint(v layer.Visiblity) string {

@@ -28,6 +28,10 @@ const DefaultLimit = 40
 
 var LimitSteps = []int{20, 40, 60, 80, 100, 150, 200}
 
+const DefaultVisibility = "global"
+
+var VisibilitySteps = []string{"global", "quiet", "follower-only", "direct-only"}
+
 type Configuration struct {
 	Session SessionConfiguration `json:"session"`
 	UI      UIConfiguration      `json:"ui"`
@@ -38,6 +42,7 @@ type UIConfiguration struct {
 	Layout        string `json:"layout"`
 	Refresh       int    `json:"refresh"`
 	Limit         int    `json:"limit"`
+	Visibility    string `json:"visibility"`
 }
 
 const (
@@ -96,5 +101,8 @@ func (c *Configuration) applyDefaults() {
 	}
 	if !slices.Contains(LimitSteps, c.UI.Limit) {
 		c.UI.Limit = DefaultLimit
+	}
+	if !slices.Contains(VisibilitySteps, c.UI.Visibility) {
+		c.UI.Visibility = DefaultVisibility
 	}
 }
