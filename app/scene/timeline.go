@@ -147,6 +147,12 @@ func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx ap
 				return
 			}
 
+		case "q":
+			ts.refreshData()
+
+		case "z":
+			ts.toggleCW()
+
 		case "tab":
 			ctx.Forward("noti", nil)
 			return

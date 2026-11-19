@@ -16,8 +16,6 @@ const (
 	menuWrite
 	menuNotifications
 	menuProfile
-	menuRefresh
-	menuCW
 	menuQuit
 )
 
@@ -50,22 +48,10 @@ func (ms *MenuScreen) item(item menuItem) component.MenuItem {
 		return component.MenuItem{Label: "Notifications"}
 	case menuProfile:
 		return component.MenuItem{Label: "My profile"}
-	case menuRefresh:
-		return component.MenuItem{Label: "Refresh"}
-	case menuCW:
-		if ms.timeline.showcw {
-			return component.MenuItem{Label: "CW content", Value: "shown", Choice: true}
-		}
-		return component.MenuItem{Label: "CW content", Value: "hidden", Choice: true}
 	case menuQuit:
 		return component.MenuItem{Label: "Quit"}
 	}
 	return component.MenuItem{}
-}
-
-func (ms *MenuScreen) toggleCW() {
-	ms.timeline.toggleCW()
-	ms.profile.setCW(ms.timeline.showcw)
 }
 
 func (ms *MenuScreen) showing(tl CurruntTL) string {
@@ -75,7 +61,7 @@ func (ms *MenuScreen) showing(tl CurruntTL) string {
 	return ""
 }
 
-func (ms *MenuScreen) run(item menuItem, ctx app.ApplicationContext) bool {
+func (ms *MenuScreen) run(item menuItem, ctx app.ApplicationContext) {
 	switch item {
 	case menuHome:
 		ms.timeline.switchTimeline(CURRUNTTL_HOME)
@@ -94,16 +80,9 @@ func (ms *MenuScreen) run(item menuItem, ctx app.ApplicationContext) bool {
 	case menuProfile:
 		ms.profile.open("")
 		ctx.Replace("profile")
-	case menuRefresh:
-		ms.timeline.refreshData()
-		ctx.Back()
-	case menuCW:
-		ms.toggleCW()
-		return false
 	case menuQuit:
 		ctx.Exit(0)
 	}
-	return true
 }
 
 func (ms *MenuScreen) InitScene(screen tcell.Screen, ctx app.ApplicationContext) {
@@ -134,15 +113,9 @@ func (ms *MenuScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app.Ap
 				ms.cursor++
 			}
 
-		case "left", "right":
-			if menuItem(ms.cursor) == menuCW {
-				ms.toggleCW()
-			}
-
 		case "enter":
-			if ms.run(menuItem(ms.cursor), ctx) {
-				return
-			}
+			ms.run(menuItem(ms.cursor), ctx)
+			return
 		}
 	}
 

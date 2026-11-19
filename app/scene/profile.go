@@ -123,6 +123,12 @@ func (ps *ProfileScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app
 			ctx.Back()
 			return
 
+		case "q":
+			ps.refreshData(screen)
+
+		case "z":
+			ps.setCW(!ps.showcw)
+
 		case "tab":
 			ctx.Forward("noti", nil)
 			return

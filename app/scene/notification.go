@@ -68,6 +68,9 @@ func (ns *NotificationScreen) DoScene(screen tcell.Screen, event tcell.Event, ct
 		case "C-c":
 			ctx.Exit(0)
 
+		case "q":
+			ns.refreshData()
+
 		case "esc", "tab":
 			ctx.Back()
 			return
