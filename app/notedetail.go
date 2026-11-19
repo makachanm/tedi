@@ -25,6 +25,7 @@ type NoteScreen struct {
 	FetchLayer layer.Client
 	config     config.Configuration
 	profile    *ProfileScreen
+	compose    *ComposeScreen
 
 	total int
 	rows  int
@@ -37,8 +38,9 @@ func NewNoteScreen(cfg config.Configuration, client layer.Client) *NoteScreen {
 	return ns
 }
 
-func (ns *NoteScreen) SetProfileScreen(profile *ProfileScreen) {
+func (ns *NoteScreen) SetScreens(profile *ProfileScreen, compose *ComposeScreen) {
 	ns.profile = profile
+	ns.compose = compose
 }
 
 func (ns *NoteScreen) snapshot() func() {
@@ -93,6 +95,14 @@ func (ns *NoteScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Applic
 				restore := ns.snapshot()
 				ns.profile.open(ns.note.Author_id)
 				ctx.Forward("profile", restore)
+				return
+			}
+
+		case "r":
+			if ns.note.Id != "" {
+				reply := ns.note
+				ns.compose.open(&reply)
+				ctx.Forward("compose", ns.snapshot())
 				return
 			}
 

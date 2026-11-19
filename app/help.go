@@ -26,6 +26,7 @@ func NewTimelineHelp() *HelpScreen {
 		{"z", "show or hide CW content"},
 		{"F2  F3  F4", "home / local / global timeline"},
 		{"q", "refresh"},
+		{"n", "write a new note"},
 		{"w", "notifications"},
 		{"e", "my profile"},
 		{"F1", "this guide"},
@@ -63,6 +64,7 @@ func NewNoteHelp() *HelpScreen {
 		{"Up / Down, k / j", "scroll"},
 		{"Left / Right, h / l", "scroll a page"},
 		{"Enter", "author's profile"},
+		{"r", "reply to this note"},
 		{"x", "react to this note"},
 		{"c", "renote this note"},
 		{"F1", "this guide"},
@@ -109,4 +111,15 @@ func (hs *HelpScreen) draw(screen tcell.Screen, ctx ApplicationContext) {
 	}
 
 	ctx.DrawFooterbar(" Help · " + hs.title + " | [Esc] Back")
+}
+
+func NewComposeHelp() *HelpScreen {
+	return &HelpScreen{title: "Compose", keys: []helpEntry{
+		{"Enter", "edit in $EDITOR"},
+		{"v", "change visibility"},
+		{"p", "post"},
+		{"Up / Down, k / j", "scroll preview"},
+		{"F1", "this guide"},
+		{"Esc", "discard and go back"},
+	}}
 }

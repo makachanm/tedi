@@ -30,10 +30,14 @@ Settings are saved to `~/.config/tedi/config.json`.
 The access token is kept in the system keyring (Secret Service, Keychain, Credential Manager) when one is available, and in the config file (mode 600) otherwise.
 
 ## Keys
+`n` opens your `$VISUAL` / `$EDITOR` (falling back to `vi`) on a temp file. Save and quit to get back to the preview, where `v` changes visibility, `Enter` edits again, and `p` posts.
+
 | Key | Timeline | Notifications | Profile | Note |
 |---|---|---|---|---|
 | `Esc` | quit | back | back | back |
 | `Enter` | open note | open note / user | open note | author's profile |
+| `n` | write a note | | | |
+| `r` | | | | reply |
 | `w` | notifications | | | |
 | `e` | my profile | | | |
 | `x` / `c` | react / renote | | react / renote | react / renote |

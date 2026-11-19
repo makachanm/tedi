@@ -53,6 +53,7 @@ type TimelineScreen struct {
 	currunt_tl CurruntTL
 	detail     *NoteScreen
 	profile    *ProfileScreen
+	compose    *ComposeScreen
 
 	config config.Configuration
 	showcw bool
@@ -61,7 +62,7 @@ type TimelineScreen struct {
 	autoRefreshStarted bool
 }
 
-func NewTimelineScreen(cfg config.Configuration, client layer.Client, detail *NoteScreen, profile *ProfileScreen) *TimelineScreen {
+func NewTimelineScreen(cfg config.Configuration, client layer.Client, detail *NoteScreen, profile *ProfileScreen, compose *ComposeScreen) *TimelineScreen {
 	ts := new(TimelineScreen)
 
 	ts.Timelines = newPagedList(cfg.UI, cfg.UI.Limit, func(note layer.Note, screenW int) int {
@@ -70,6 +71,7 @@ func NewTimelineScreen(cfg config.Configuration, client layer.Client, detail *No
 	ts.FetchLayer = client
 	ts.detail = detail
 	ts.profile = profile
+	ts.compose = compose
 	ts.config = cfg
 	ts.showcw = false
 
@@ -166,6 +168,11 @@ func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Ap
 
 		case "w":
 			ctx.Forward("noti", nil)
+			return
+
+		case "n":
+			ts.compose.open(nil)
+			ctx.Forward("compose", nil)
 			return
 
 		case "e":
