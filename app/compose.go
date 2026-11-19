@@ -3,6 +3,7 @@ package app
 import (
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"tedi/component"
 	"tedi/config"
@@ -18,7 +19,6 @@ type ComposeScreen struct {
 	text       string
 	visibility layer.Visiblity
 	reply      *layer.Note
-	file       string
 	notice     string
 	confirm    bool
 	pending    bool
@@ -33,7 +33,6 @@ func NewComposeScreen(cfg config.Configuration, client layer.Client) *ComposeScr
 }
 
 func (cs *ComposeScreen) open(reply *layer.Note) {
-	cs.discard()
 	cs.text = ""
 	cs.reply = reply
 	cs.visibility = layer.VISIBLITY_PUBLIC
@@ -46,13 +45,6 @@ func (cs *ComposeScreen) open(reply *layer.Note) {
 	cs.scroll = 0
 }
 
-func (cs *ComposeScreen) discard() {
-	if cs.file != "" {
-		os.Remove(cs.file)
-		cs.file = ""
-	}
-}
-
 func editorCommand() []string {
 	for _, env := range []string{"VISUAL", "EDITOR"} {
 		if args := strings.Fields(os.Getenv(env)); len(args) > 0 {
@@ -63,17 +55,15 @@ func editorCommand() []string {
 }
 
 func (cs *ComposeScreen) edit(screen tcell.Screen) {
-	if cs.file == "" {
-		f, err := os.CreateTemp("", "tedi-note-*.txt")
-		if err != nil {
-			cs.notice = "Could not create a temp file"
-			return
-		}
-		cs.file = f.Name()
-		f.Close()
+	dir, err := os.MkdirTemp("", "tedi-note-*")
+	if err != nil {
+		cs.notice = "Could not create a temp file"
+		return
 	}
-	os.Chmod(cs.file, 0600)
-	if err := os.WriteFile(cs.file, []byte(cs.text), 0600); err != nil {
+	defer os.RemoveAll(dir)
+
+	file := filepath.Join(dir, "note.txt")
+	if err := os.WriteFile(file, []byte(cs.text), 0600); err != nil {
 		cs.notice = "Could not write the temp file"
 		return
 	}
@@ -83,7 +73,7 @@ func (cs *ComposeScreen) edit(screen tcell.Screen) {
 		return
 	}
 	args := editorCommand()
-	cmd := exec.Command(args[0], append(args[1:], cs.file)...)
+	cmd := exec.Command(args[0], append(args[1:], file)...)
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
 	runErr := cmd.Run()
 	screen.Resume()
@@ -93,7 +83,7 @@ func (cs *ComposeScreen) edit(screen tcell.Screen) {
 		cs.notice = "Editor " + args[0] + " failed"
 		return
 	}
-	d, err := os.ReadFile(cs.file)
+	d, err := os.ReadFile(file)
 	if err != nil {
 		cs.notice = "Could not read the temp file"
 		return
@@ -124,7 +114,6 @@ func (cs *ComposeScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx App
 
 		switch key {
 		case "C-c":
-			cs.discard()
 			ctx.Exit(0)
 
 		case "esc":
@@ -133,7 +122,6 @@ func (cs *ComposeScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx App
 				cs.notice = "Press Esc again to discard this note"
 				break
 			}
-			cs.discard()
 			ctx.Back()
 			return
 
@@ -160,7 +148,6 @@ func (cs *ComposeScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx App
 				cs.notice = "Post failed"
 				break
 			}
-			cs.discard()
 			ctx.Back()
 			return
 
