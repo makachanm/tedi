@@ -251,3 +251,21 @@ func (m *MastodonFetch) account(path string) (Profile, error) {
 func (m *MastodonFetch) GetUserNotes(user_id string) []Note {
 	return m.timeline("api/v1/accounts/"+url.PathEscape(user_id)+"/statuses", url.Values{})
 }
+
+func (m *MastodonFetch) PostNote(text string, visibility Visiblity, reply_to string) error {
+	platform, _ := valueToPlatformVisblity(visibility)
+	form := url.Values{"status": {text}, "visibility": {platform}}
+	if reply_to != "" {
+		form.Set("in_reply_to_id", reply_to)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, m.instance_url.JoinPath("api/v1/statuses").String(), strings.NewReader(form.Encode()))
+	if err != nil {
+		return fmt.Errorf("create http request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Authorization", "Bearer "+m.token)
+
+	_, err = doRequest(req)
+	return err
+}

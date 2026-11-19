@@ -52,6 +52,22 @@ func platformVisblityToValue(s string) Visiblity {
 	}
 }
 
+func valueToPlatformVisblity(v Visiblity) (string, string) {
+	switch v {
+	case VISIBLITY_PUBLIC:
+		return "public", "public"
+	case VISIBLITY_QUIET:
+		return "unlisted", "home"
+	case VISIBLITY_FOLLOWER:
+		return "private", "followers"
+	case VISIBLITY_DIRECT:
+		return "direct", "specified"
+
+	default:
+		return "unlisted", "home"
+	}
+}
+
 func platformNotiTypeToValue(s string) NotificationType {
 	switch s {
 	case "mention":

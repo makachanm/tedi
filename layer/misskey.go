@@ -302,3 +302,13 @@ func (m *MisskeyFetch) account(path string, body map[string]any) (Profile, error
 func (m *MisskeyFetch) GetUserNotes(user_id string) []Note {
 	return m.timeline("api/users/notes", map[string]any{"userId": user_id})
 }
+
+func (m *MisskeyFetch) PostNote(text string, visibility Visiblity, reply_to string) error {
+	_, platform := valueToPlatformVisblity(visibility)
+	body := map[string]any{"text": text, "visibility": platform}
+	if reply_to != "" {
+		body["replyId"] = reply_to
+	}
+	_, err := m.request("api/notes/create", body)
+	return err
+}
