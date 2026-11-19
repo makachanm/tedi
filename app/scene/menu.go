@@ -66,6 +66,11 @@ func (ms *MenuScreen) item(item menuItem) component.MenuItem {
 	return component.MenuItem{}
 }
 
+func (ms *MenuScreen) toggleCW() {
+	ms.timeline.toggleCW()
+	ms.profile.setCW(ms.timeline.showcw)
+}
+
 func (ms *MenuScreen) showing(tl CurruntTL) string {
 	if ms.timeline.currunt_tl == tl {
 		return "showing"
@@ -96,7 +101,7 @@ func (ms *MenuScreen) run(item menuItem, ctx app.ApplicationContext) bool {
 		ms.timeline.refreshData()
 		ctx.Back()
 	case menuCW:
-		ms.timeline.toggleCW()
+		ms.toggleCW()
 		return false
 	case menuGuide:
 		ctx.Replace("main-help")
@@ -129,18 +134,18 @@ func (ms *MenuScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app.Ap
 			ctx.Replace("main-help")
 			return
 
-		case "up", "k":
+		case "up":
 			if ms.cursor > 0 {
 				ms.cursor--
 			}
-		case "down", "j":
+		case "down":
 			if ms.cursor < int(menuQuit) {
 				ms.cursor++
 			}
 
-		case "left", "right", "h", "l":
+		case "left", "right":
 			if menuItem(ms.cursor) == menuCW {
-				ms.timeline.toggleCW()
+				ms.toggleCW()
 			}
 
 		case "enter":

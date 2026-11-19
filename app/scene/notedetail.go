@@ -134,9 +134,9 @@ func (ns *NoteScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app.Ap
 			ctx.Forward("noti", ns.snapshot())
 			return
 
-		case "left", "h":
+		case "left":
 			ns.action = max(ns.action-1, 0)
-		case "right", "l":
+		case "right":
 			ns.action = min(ns.action+1, int(actionAuthor))
 
 		case "enter":
@@ -144,22 +144,13 @@ func (ns *NoteScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app.Ap
 				return
 			}
 
-		case "r":
-			if ns.runAction(actionReply, ctx) {
-				return
-			}
-		case "x":
-			ns.runAction(actionReact, ctx)
-		case "c":
-			ns.runAction(actionRenote, ctx)
-
-		case "up", "k":
+		case "up":
 			ns.scroll--
-		case "down", "j":
+		case "down":
 			ns.scroll++
 		case "pgup":
 			ns.scroll -= max(ns.rows-1, 1)
-		case "pgdn", " ":
+		case "pgdn":
 			ns.scroll += max(ns.rows-1, 1)
 		}
 	}

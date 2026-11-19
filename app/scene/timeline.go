@@ -127,40 +127,19 @@ func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx ap
 			ctx.Forward("menu", nil)
 			return
 
-		case "q":
-			ts.refreshData()
-
 		case "f1":
 			ctx.Forward("main-help", nil)
 			return
 
-		case "f2":
-			ts.switchTimeline(CURRUNTTL_HOME)
-		case "f3":
-			ts.switchTimeline(CURRUNTTL_LOCAL)
-		case "f4":
-			ts.switchTimeline(CURRUNTTL_GLOBAL)
-
-		case "z":
-			ts.toggleCW()
-
-		case "up", "k":
+		case "up":
 			ts.timelinelock.Lock()
 			ts.Timelines.MoveCursor(-1)
 			ts.timelinelock.Unlock()
 
-		case "down", "j":
+		case "down":
 			ts.timelinelock.Lock()
 			ts.Timelines.MoveCursor(1)
 			ts.timelinelock.Unlock()
-
-		case "x", "c":
-			ts.timelinelock.Lock()
-			note, ok := ts.Timelines.Selected()
-			ts.timelinelock.Unlock()
-			if ok {
-				ts.notice = actOnNote(ts.FetchLayer, note, keyName(ev) == "x")
-			}
 
 		case "enter":
 			ts.timelinelock.Lock()
@@ -176,22 +155,12 @@ func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx ap
 			ctx.Forward("noti", nil)
 			return
 
-		case "n":
-			ts.compose.open(nil)
-			ctx.Forward("compose", nil)
-			return
-
-		case "e":
-			ts.profile.open("")
-			ctx.Forward("profile", nil)
-			return
-
-		case "left", "h", "pgup":
+		case "left", "pgup":
 			ts.timelinelock.Lock()
 			ts.Timelines.GoPrev()
 			ts.timelinelock.Unlock()
 
-		case "right", "l", "pgdn", " ":
+		case "right", "pgdn":
 			ts.timelinelock.Lock()
 			ts.Timelines.GoNext()
 			ts.timelinelock.Unlock()

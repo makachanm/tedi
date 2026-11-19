@@ -24,13 +24,6 @@ func NewTimelineHelp() *HelpScreen {
 		{"Enter", "open note"},
 		{"Tab", "notifications"},
 		{"Esc", "menu"},
-		{"", "Shortcuts"},
-		{"x / c", "react / renote"},
-		{"n", "write a note"},
-		{"e", "my profile"},
-		{"q", "refresh"},
-		{"z", "show or hide CW"},
-		{"F2 F3 F4", "home / local / global timeline"},
 	}}
 }
 
@@ -40,8 +33,6 @@ func NewNotificationHelp() *HelpScreen {
 		{"Left / Right", "previous / next page"},
 		{"Enter", "open note or user"},
 		{"Tab / Esc", "back"},
-		{"", "Shortcuts"},
-		{"q", "refresh"},
 	}}
 }
 
@@ -52,23 +43,17 @@ func NewProfileHelp() *HelpScreen {
 		{"Enter", "open note"},
 		{"Tab", "notifications"},
 		{"Esc", "back"},
-		{"", "Shortcuts"},
-		{"x / c", "react / renote"},
-		{"q", "refresh"},
-		{"z", "show or hide CW"},
 	}}
 }
 
 func NewNoteHelp() *HelpScreen {
 	return &HelpScreen{title: "Note", keys: []helpEntry{
 		{"Up / Down", "scroll"},
+		{"PgUp / PgDn", "scroll a page"},
 		{"Left / Right", "choose action"},
 		{"Enter", "run action"},
 		{"Tab", "notifications"},
 		{"Esc", "back"},
-		{"", "Shortcuts"},
-		{"r / x / c", "reply / react / renote"},
-		{"PgUp / PgDn", "scroll a page"},
 	}}
 }
 
@@ -77,11 +62,8 @@ func NewComposeHelp() *HelpScreen {
 		{"Up / Down", "select item"},
 		{"Left / Right", "change visibility"},
 		{"Enter", "run item"},
-		{"Esc", "discard"},
-		{"", "Shortcuts"},
-		{"v", "change visibility"},
-		{"p", "post"},
 		{"PgUp / PgDn", "scroll the preview"},
+		{"Esc", "discard"},
 	}}
 }
 
@@ -118,17 +100,9 @@ func (hs *HelpScreen) draw(screen tcell.Screen, ctx app.ApplicationContext) {
 	for _, e := range hs.keys {
 		keyW = max(keyW, len(e.key))
 	}
-	y := 3
-	for _, e := range hs.keys {
-		if e.key == "" {
-			y++
-			utils.WriteTo(screen, 2, y, e.desc, normal.Bold(true))
-			y += 2
-			continue
-		}
-		utils.WriteTo(screen, 2, y, e.key, normal)
-		utils.WriteTo(screen, 2+keyW+3, y, e.desc, dim)
-		y++
+	for i, e := range hs.keys {
+		utils.WriteTo(screen, 2, 3+i, e.key, normal)
+		utils.WriteTo(screen, 2+keyW+3, 3+i, e.desc, dim)
 	}
 
 	ctx.DrawFooterbar(" " + hs.title + " help | [Esc] Back")

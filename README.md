@@ -33,12 +33,12 @@ The access token is kept in the system keyring (Secret Service, Keychain, Creden
 | Key | |
 |---|---|
 | `↑` `↓` | select, scroll |
-| `←` `→` | page, change value |
+| `←` `→` | page, change value, choose action |
 | `Enter` | open, run |
 | `Esc` / `Backspace` | back, menu on the timeline |
 | `Tab` | notifications |
 | `F1` | keys for the current screen |
 
-Shortcuts: `x` react, `c` renote, `n` write, `e` profile, `q` refresh, `z` CW, `F2` `F3` `F4` home / local / global.
+Timelines, writing, your profile, refresh, CW and quit are in the menu. Reply, react, renote and the author's profile are along the bottom of an opened note.
 
 Writing uses `$VISUAL` or `$EDITOR` (default `vi`).

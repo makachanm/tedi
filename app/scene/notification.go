@@ -68,9 +68,6 @@ func (ns *NotificationScreen) DoScene(screen tcell.Screen, event tcell.Event, ct
 		case "C-c":
 			ctx.Exit(0)
 
-		case "q":
-			ns.refreshData()
-
 		case "f1":
 			ctx.Forward("noti-help", nil)
 			return
@@ -94,22 +91,22 @@ func (ns *NotificationScreen) DoScene(screen tcell.Screen, event tcell.Event, ct
 				return
 			}
 
-		case "up", "k":
+		case "up":
 			ns.notilock.Lock()
 			ns.Notifications.MoveCursor(-1)
 			ns.notilock.Unlock()
 
-		case "down", "j":
+		case "down":
 			ns.notilock.Lock()
 			ns.Notifications.MoveCursor(1)
 			ns.notilock.Unlock()
 
-		case "left", "h", "pgup":
+		case "left", "pgup":
 			ns.notilock.Lock()
 			ns.Notifications.GoPrev()
 			ns.notilock.Unlock()
 
-		case "right", "l", "pgdn", " ":
+		case "right", "pgdn":
 			ns.notilock.Lock()
 			ns.Notifications.GoNext()
 			ns.notilock.Unlock()

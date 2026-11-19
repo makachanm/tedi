@@ -17,7 +17,6 @@ type profileView struct {
 	profile layer.Profile
 	notes   *paging.PagedList[layer.Note]
 	loaded  bool
-	showcw  bool
 	notice  string
 }
 
@@ -28,6 +27,7 @@ type ProfileScreen struct {
 	FetchLayer layer.Client
 	detail     *NoteScreen
 	config     config.Configuration
+	showcw     bool
 }
 
 func NewProfileScreen(cfg config.Configuration, client layer.Client, detail *NoteScreen) *ProfileScreen {
@@ -46,6 +46,13 @@ func (ps *ProfileScreen) open(userId string) {
 	ps.notes = paging.NewPagedList(ps.config.UI, ps.config.UI.Limit, func(note layer.Note, screenW int) int {
 		return component.NoteHeight(note, screenW, 1, ps.showcw)
 	})
+}
+
+func (ps *ProfileScreen) setCW(show bool) {
+	ps.lock.Lock()
+	defer ps.lock.Unlock()
+	ps.showcw = show
+	ps.notes.Layout()
 }
 
 func (ps *ProfileScreen) snapshot() func() {
@@ -124,32 +131,15 @@ func (ps *ProfileScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app
 			ctx.Forward("noti", nil)
 			return
 
-		case "q":
-			ps.refreshData(screen)
-
-		case "z":
-			ps.lock.Lock()
-			ps.showcw = !ps.showcw
-			ps.notes.Layout()
-			ps.lock.Unlock()
-
-		case "up", "k":
+		case "up":
 			ps.lock.Lock()
 			ps.notes.MoveCursor(-1)
 			ps.lock.Unlock()
 
-		case "down", "j":
+		case "down":
 			ps.lock.Lock()
 			ps.notes.MoveCursor(1)
 			ps.lock.Unlock()
-
-		case "x", "c":
-			ps.lock.Lock()
-			note, ok := ps.notes.Selected()
-			ps.lock.Unlock()
-			if ok {
-				ps.notice = actOnNote(ps.FetchLayer, note, keyName(ev) == "x")
-			}
 
 		case "enter":
 			ps.lock.Lock()
@@ -162,12 +152,12 @@ func (ps *ProfileScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app
 				return
 			}
 
-		case "left", "h", "pgup":
+		case "left", "pgup":
 			ps.lock.Lock()
 			ps.notes.GoPrev()
 			ps.lock.Unlock()
 
-		case "right", "l", "pgdn", " ":
+		case "right", "pgdn":
 			ps.lock.Lock()
 			ps.notes.GoNext()
 			ps.lock.Unlock()

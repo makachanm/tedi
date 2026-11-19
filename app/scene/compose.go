@@ -199,16 +199,16 @@ func (cs *ComposeScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app
 			ctx.Forward("compose-help", nil)
 			return
 
-		case "up", "k":
+		case "up":
 			cs.cursor = max(cs.cursor-1, 0)
-		case "down", "j":
+		case "down":
 			cs.cursor = min(cs.cursor+1, int(composeDiscard))
 
-		case "left", "h":
+		case "left":
 			if composeItem(cs.cursor) == composeVisibility {
 				cs.visibility = (cs.visibility+2)%layer.VISIBLITY_DIRECT + 1
 			}
-		case "right", "l":
+		case "right":
 			if composeItem(cs.cursor) == composeVisibility {
 				cs.visibility = cs.visibility%layer.VISIBLITY_DIRECT + 1
 			}
@@ -229,16 +229,9 @@ func (cs *ComposeScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app
 				}
 			}
 
-		case "v":
-			cs.visibility = cs.visibility%layer.VISIBLITY_DIRECT + 1
-		case "p":
-			if cs.post(ctx) {
-				return
-			}
-
 		case "pgup":
 			cs.scroll -= 5
-		case "pgdn", " ":
+		case "pgdn":
 			cs.scroll += 5
 		}
 	}
