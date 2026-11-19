@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"tedi/app"
+	"tedi/app/scene"
 	"tedi/auth"
 	"tedi/config"
 	"tedi/layer"
@@ -206,13 +207,13 @@ func runConfig(args []string) error {
 
 	message := ""
 	for {
-		updated, action, err := app.RunSettings(cfg, path, message)
+		updated, action, err := scene.RunSettings(cfg, path, message)
 		if err != nil {
 			return err
 		}
 		message = ""
 
-		if action == app.SettingsQuit {
+		if action == scene.SettingsQuit {
 			return nil
 		}
 		if updated != cfg {
@@ -223,11 +224,11 @@ func runConfig(args []string) error {
 		}
 
 		switch action {
-		case app.SettingsSave:
+		case scene.SettingsSave:
 			fmt.Printf("Saved %s\n", path)
 			return nil
 
-		case app.SettingsLogin:
+		case scene.SettingsLogin:
 			ctx, stop := interruptContext()
 			err := login(ctx, &cfg, path, auth.Options{})
 			stop()
@@ -237,7 +238,7 @@ func runConfig(args []string) error {
 				message = "Logged in as @" + cfg.Session.Account
 			}
 
-		case app.SettingsLogout:
+		case scene.SettingsLogout:
 			notice, err := logout(&cfg, path)
 			if err != nil {
 				message = err.Error()
@@ -347,22 +348,22 @@ func runClient(args []string) error {
 		return err
 	}
 
-	detail := app.NewNoteScreen(cfg, client)
-	profile := app.NewProfileScreen(cfg, client, detail)
-	compose := app.NewComposeScreen(cfg, client)
+	detail := scene.NewNoteScreen(cfg, client)
+	profile := scene.NewProfileScreen(cfg, client, detail)
+	compose := scene.NewComposeScreen(cfg, client)
 	detail.SetScreens(profile, compose)
-	timeline := app.NewTimelineScreen(cfg, client, detail, profile, compose)
+	timeline := scene.NewTimelineScreen(cfg, client, detail, profile, compose)
 	m.RegisterScene("main", timeline)
-	m.RegisterScene("menu", app.NewMenuScreen(timeline, profile, compose))
-	m.RegisterScene("noti", app.NewNotificationScreen(cfg, client, detail, profile))
+	m.RegisterScene("menu", scene.NewMenuScreen(timeline, profile, compose))
+	m.RegisterScene("noti", scene.NewNotificationScreen(cfg, client, detail, profile))
 	m.RegisterScene("profile", profile)
 	m.RegisterScene("note", detail)
 	m.RegisterScene("compose", compose)
-	m.RegisterScene("main-help", app.NewTimelineHelp())
-	m.RegisterScene("noti-help", app.NewNotificationHelp())
-	m.RegisterScene("note-help", app.NewNoteHelp())
-	m.RegisterScene("profile-help", app.NewProfileHelp())
-	m.RegisterScene("compose-help", app.NewComposeHelp())
+	m.RegisterScene("main-help", scene.NewTimelineHelp())
+	m.RegisterScene("noti-help", scene.NewNotificationHelp())
+	m.RegisterScene("note-help", scene.NewNoteHelp())
+	m.RegisterScene("profile-help", scene.NewProfileHelp())
+	m.RegisterScene("compose-help", scene.NewComposeHelp())
 	m.Mainloop()
 	return nil
 }

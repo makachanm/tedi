@@ -1,6 +1,19 @@
-package app
+package scene
 
-import "github.com/gdamore/tcell/v2"
+import (
+	"tedi/config"
+	"time"
+
+	"github.com/gdamore/tcell/v2"
+)
+
+func refreshInterval(ui config.UIConfiguration) time.Duration {
+	return time.Duration(ui.Refresh) * time.Second
+}
+
+func footerText(info string, esc string) string {
+	return " " + info + " | [Esc] " + esc + "  [F1] Help"
+}
 
 func keyName(ev *tcell.EventKey) string {
 	switch ev.Key() {

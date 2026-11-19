@@ -1,4 +1,4 @@
-package utils
+package paging
 
 type ItemSizePagination[T any] struct {
 	items map[int][]T

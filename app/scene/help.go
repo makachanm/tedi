@@ -1,6 +1,7 @@
-package app
+package scene
 
 import (
+	"tedi/app"
 	"tedi/utils"
 
 	"github.com/gdamore/tcell/v2"
@@ -84,15 +85,15 @@ func NewComposeHelp() *HelpScreen {
 	}}
 }
 
-func (hs *HelpScreen) InitScene(screen tcell.Screen, ctx ApplicationContext) {
+func (hs *HelpScreen) InitScene(screen tcell.Screen, ctx app.ApplicationContext) {
 	screen.Clear()
 	hs.draw(screen, ctx)
 }
 
-func (hs *HelpScreen) WindowChangedScene(screen tcell.Screen, ctx ApplicationContext) {
+func (hs *HelpScreen) WindowChangedScene(screen tcell.Screen, ctx app.ApplicationContext) {
 }
 
-func (hs *HelpScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx ApplicationContext) {
+func (hs *HelpScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app.ApplicationContext) {
 	if ev, ok := event.(*tcell.EventKey); ok {
 		switch keyName(ev) {
 		case "C-c":
@@ -107,7 +108,7 @@ func (hs *HelpScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Applic
 	hs.draw(screen, ctx)
 }
 
-func (hs *HelpScreen) draw(screen tcell.Screen, ctx ApplicationContext) {
+func (hs *HelpScreen) draw(screen tcell.Screen, ctx app.ApplicationContext) {
 	normal := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
 	dim := normal.Foreground(tcell.ColorGray)
 

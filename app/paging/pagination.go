@@ -1,4 +1,4 @@
-package utils
+package paging
 
 type ItemAutoDemandPagination[T any] struct {
 	max_item_limit    int

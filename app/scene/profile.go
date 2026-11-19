@@ -1,8 +1,10 @@
-package app
+package scene
 
 import (
 	"fmt"
 	"sync"
+	"tedi/app"
+	"tedi/app/paging"
 	"tedi/component"
 	"tedi/config"
 	"tedi/layer"
@@ -13,7 +15,7 @@ import (
 type profileView struct {
 	userId  string
 	profile layer.Profile
-	notes   *pagedList[layer.Note]
+	notes   *paging.PagedList[layer.Note]
 	loaded  bool
 	showcw  bool
 	notice  string
@@ -41,7 +43,7 @@ func (ps *ProfileScreen) open(userId string) {
 	ps.lock.Lock()
 	defer ps.lock.Unlock()
 	ps.profileView = profileView{userId: userId}
-	ps.notes = newPagedList(ps.config.UI, ps.config.UI.Limit, func(note layer.Note, screenW int) int {
+	ps.notes = paging.NewPagedList(ps.config.UI, ps.config.UI.Limit, func(note layer.Note, screenW int) int {
 		return component.NoteHeight(note, screenW, 1, ps.showcw)
 	})
 }
@@ -62,7 +64,7 @@ func (ps *ProfileScreen) resize(screen tcell.Screen) {
 	defer ps.lock.Unlock()
 	w, h := screen.Size()
 	header := component.ProfileHeight(ps.profile, w, 2)
-	ps.notes.resize(w, max(h-header, 2))
+	ps.notes.Resize(w, max(h-header, 2))
 }
 
 func (ps *ProfileScreen) refreshData(screen tcell.Screen) {
@@ -82,13 +84,13 @@ func (ps *ProfileScreen) refreshData(screen tcell.Screen) {
 	ps.lock.Lock()
 	ps.profile = profile
 	ps.loaded = true
-	ps.notes.setItems(notes)
+	ps.notes.SetItems(notes)
 	ps.lock.Unlock()
 
 	ps.resize(screen)
 }
 
-func (ps *ProfileScreen) InitScene(screen tcell.Screen, ctx ApplicationContext) {
+func (ps *ProfileScreen) InitScene(screen tcell.Screen, ctx app.ApplicationContext) {
 	if !ps.loaded {
 		ps.refreshData(screen)
 	} else {
@@ -99,11 +101,11 @@ func (ps *ProfileScreen) InitScene(screen tcell.Screen, ctx ApplicationContext) 
 	ps.drawProfile(screen, ctx)
 }
 
-func (ps *ProfileScreen) WindowChangedScene(screen tcell.Screen, ctx ApplicationContext) {
+func (ps *ProfileScreen) WindowChangedScene(screen tcell.Screen, ctx app.ApplicationContext) {
 	ps.resize(screen)
 }
 
-func (ps *ProfileScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx ApplicationContext) {
+func (ps *ProfileScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app.ApplicationContext) {
 	if ev, ok := event.(*tcell.EventKey); ok {
 		ps.notice = ""
 		switch keyName(ev) {
@@ -128,22 +130,22 @@ func (ps *ProfileScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx App
 		case "z":
 			ps.lock.Lock()
 			ps.showcw = !ps.showcw
-			ps.notes.layout()
+			ps.notes.Layout()
 			ps.lock.Unlock()
 
 		case "up", "k":
 			ps.lock.Lock()
-			ps.notes.moveCursor(-1)
+			ps.notes.MoveCursor(-1)
 			ps.lock.Unlock()
 
 		case "down", "j":
 			ps.lock.Lock()
-			ps.notes.moveCursor(1)
+			ps.notes.MoveCursor(1)
 			ps.lock.Unlock()
 
 		case "x", "c":
 			ps.lock.Lock()
-			note, ok := ps.notes.selected()
+			note, ok := ps.notes.Selected()
 			ps.lock.Unlock()
 			if ok {
 				ps.notice = actOnNote(ps.FetchLayer, note, keyName(ev) == "x")
@@ -151,7 +153,7 @@ func (ps *ProfileScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx App
 
 		case "enter":
 			ps.lock.Lock()
-			note, ok := ps.notes.selected()
+			note, ok := ps.notes.Selected()
 			ps.lock.Unlock()
 			if ok {
 				restore := ps.snapshot()
@@ -176,7 +178,7 @@ func (ps *ProfileScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx App
 	ps.drawProfile(screen, ctx)
 }
 
-func (ps *ProfileScreen) drawProfile(screen tcell.Screen, ctx ApplicationContext) {
+func (ps *ProfileScreen) drawProfile(screen tcell.Screen, ctx app.ApplicationContext) {
 	ps.lock.Lock()
 	defer ps.lock.Unlock()
 	textStyle := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
@@ -187,8 +189,8 @@ func (ps *ProfileScreen) drawProfile(screen tcell.Screen, ctx ApplicationContext
 	}
 
 	for i, note := range ps.notes.GetCurruntPage() {
-		height := ps.notes.height(note)
-		component.DrawNoteComponent(1, y, note, screen, textStyle, height, ps.showcw, i == ps.notes.cursor)
+		height := ps.notes.Height(note)
+		component.DrawNoteComponent(1, y, note, screen, textStyle, height, ps.showcw, i == ps.notes.Cursor)
 		y += height
 	}
 

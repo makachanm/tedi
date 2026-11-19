@@ -1,7 +1,8 @@
-package app
+package scene
 
 import (
 	"fmt"
+	"tedi/app"
 	"tedi/component"
 	"tedi/config"
 	"tedi/layer"
@@ -19,6 +20,15 @@ type noteView struct {
 	jump   bool
 	action int
 }
+
+type noteAction int
+
+const (
+	actionReply noteAction = iota
+	actionReact
+	actionRenote
+	actionAuthor
+)
 
 var noteActions = []string{"Reply", "React", "Renote", "Author"}
 
@@ -70,17 +80,17 @@ func (ns *NoteScreen) open(note layer.Note) {
 	}
 }
 
-func (ns *NoteScreen) InitScene(screen tcell.Screen, ctx ApplicationContext) {
+func (ns *NoteScreen) InitScene(screen tcell.Screen, ctx app.ApplicationContext) {
 	screen.Clear()
 	ns.drawNote(screen, ctx)
 }
 
-func (ns *NoteScreen) WindowChangedScene(screen tcell.Screen, ctx ApplicationContext) {
+func (ns *NoteScreen) WindowChangedScene(screen tcell.Screen, ctx app.ApplicationContext) {
 }
 
-func (ns *NoteScreen) runAction(action int, ctx ApplicationContext) bool {
-	switch noteActions[action] {
-	case "Reply":
+func (ns *NoteScreen) runAction(action noteAction, ctx app.ApplicationContext) bool {
+	switch action {
+	case actionReply:
 		if ns.note.Id == "" {
 			return false
 		}
@@ -89,11 +99,11 @@ func (ns *NoteScreen) runAction(action int, ctx ApplicationContext) bool {
 		ns.compose.open(&reply)
 		ctx.Forward("compose", restore)
 		return true
-	case "React":
+	case actionReact:
 		ns.notice = actOnNote(ns.FetchLayer, ns.note, true)
-	case "Renote":
+	case actionRenote:
 		ns.notice = actOnNote(ns.FetchLayer, ns.note, false)
-	case "Author":
+	case actionAuthor:
 		if ns.note.Author_id == "" {
 			return false
 		}
@@ -105,7 +115,7 @@ func (ns *NoteScreen) runAction(action int, ctx ApplicationContext) bool {
 	return false
 }
 
-func (ns *NoteScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx ApplicationContext) {
+func (ns *NoteScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app.ApplicationContext) {
 	if ev, ok := event.(*tcell.EventKey); ok {
 		ns.notice = ""
 		switch keyName(ev) {
@@ -127,21 +137,21 @@ func (ns *NoteScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Applic
 		case "left", "h":
 			ns.action = max(ns.action-1, 0)
 		case "right", "l":
-			ns.action = min(ns.action+1, len(noteActions)-1)
+			ns.action = min(ns.action+1, int(actionAuthor))
 
 		case "enter":
-			if ns.runAction(ns.action, ctx) {
+			if ns.runAction(noteAction(ns.action), ctx) {
 				return
 			}
 
 		case "r":
-			if ns.runAction(0, ctx) {
+			if ns.runAction(actionReply, ctx) {
 				return
 			}
 		case "x":
-			ns.runAction(1, ctx)
+			ns.runAction(actionReact, ctx)
 		case "c":
-			ns.runAction(2, ctx)
+			ns.runAction(actionRenote, ctx)
 
 		case "up", "k":
 			ns.scroll--
@@ -158,7 +168,7 @@ func (ns *NoteScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx Applic
 	ns.drawNote(screen, ctx)
 }
 
-func (ns *NoteScreen) drawNote(screen tcell.Screen, ctx ApplicationContext) {
+func (ns *NoteScreen) drawNote(screen tcell.Screen, ctx app.ApplicationContext) {
 	textStyle := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
 	w, h := screen.Size()
 

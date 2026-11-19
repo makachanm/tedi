@@ -1,10 +1,11 @@
-package app
+package scene
 
 import (
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"tedi/app"
 	"tedi/component"
 	"tedi/config"
 	"tedi/layer"
@@ -93,7 +94,7 @@ func (cs *ComposeScreen) edit(screen tcell.Screen) {
 	cs.text = strings.TrimRight(strings.TrimLeft(string(d), "\r\n"), " \t\r\n")
 }
 
-func (cs *ComposeScreen) InitScene(screen tcell.Screen, ctx ApplicationContext) {
+func (cs *ComposeScreen) InitScene(screen tcell.Screen, ctx app.ApplicationContext) {
 	if cs.pending {
 		cs.pending = false
 		cs.edit(screen)
@@ -103,10 +104,31 @@ func (cs *ComposeScreen) InitScene(screen tcell.Screen, ctx ApplicationContext) 
 	cs.draw(screen, ctx)
 }
 
-func (cs *ComposeScreen) WindowChangedScene(screen tcell.Screen, ctx ApplicationContext) {
+func (cs *ComposeScreen) WindowChangedScene(screen tcell.Screen, ctx app.ApplicationContext) {
 }
 
-var composeItems = []string{"Edit text", "Visibility", "Post", "Discard"}
+type composeItem int
+
+const (
+	composeEdit composeItem = iota
+	composeVisibility
+	composePost
+	composeDiscard
+)
+
+func composeLabel(item composeItem) string {
+	switch item {
+	case composeEdit:
+		return "Edit text"
+	case composeVisibility:
+		return "Visibility"
+	case composePost:
+		return "Post"
+	case composeDiscard:
+		return "Discard"
+	}
+	return ""
+}
 
 func visibilityHint(v layer.Visiblity) string {
 	switch v {
@@ -122,13 +144,13 @@ func visibilityHint(v layer.Visiblity) string {
 }
 
 func (cs *ComposeScreen) hint() string {
-	if composeItems[cs.cursor] == "Visibility" {
+	if composeItem(cs.cursor) == composeVisibility {
 		return visibilityHint(cs.visibility)
 	}
 	return ""
 }
 
-func (cs *ComposeScreen) post(ctx ApplicationContext) bool {
+func (cs *ComposeScreen) post(ctx app.ApplicationContext) bool {
 	if strings.TrimSpace(cs.text) == "" {
 		cs.notice = "Nothing to post"
 		return false
@@ -145,7 +167,7 @@ func (cs *ComposeScreen) post(ctx ApplicationContext) bool {
 	return true
 }
 
-func (cs *ComposeScreen) discard(ctx ApplicationContext) bool {
+func (cs *ComposeScreen) discard(ctx app.ApplicationContext) bool {
 	if strings.TrimSpace(cs.text) != "" && !cs.confirm {
 		cs.confirm = true
 		cs.notice = "Press again to discard"
@@ -155,10 +177,10 @@ func (cs *ComposeScreen) discard(ctx ApplicationContext) bool {
 	return true
 }
 
-func (cs *ComposeScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx ApplicationContext) {
+func (cs *ComposeScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app.ApplicationContext) {
 	if ev, ok := event.(*tcell.EventKey); ok {
 		key := keyName(ev)
-		discarding := key == "esc" || (key == "enter" && composeItems[cs.cursor] == "Discard")
+		discarding := key == "esc" || (key == "enter" && composeItem(cs.cursor) == composeDiscard)
 		if !discarding {
 			cs.confirm = false
 		}
@@ -180,28 +202,28 @@ func (cs *ComposeScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx App
 		case "up", "k":
 			cs.cursor = max(cs.cursor-1, 0)
 		case "down", "j":
-			cs.cursor = min(cs.cursor+1, len(composeItems)-1)
+			cs.cursor = min(cs.cursor+1, int(composeDiscard))
 
 		case "left", "h":
-			if composeItems[cs.cursor] == "Visibility" {
+			if composeItem(cs.cursor) == composeVisibility {
 				cs.visibility = (cs.visibility+2)%layer.VISIBLITY_DIRECT + 1
 			}
 		case "right", "l":
-			if composeItems[cs.cursor] == "Visibility" {
+			if composeItem(cs.cursor) == composeVisibility {
 				cs.visibility = cs.visibility%layer.VISIBLITY_DIRECT + 1
 			}
 
 		case "enter":
-			switch composeItems[cs.cursor] {
-			case "Edit text":
+			switch composeItem(cs.cursor) {
+			case composeEdit:
 				cs.edit(screen)
-			case "Visibility":
+			case composeVisibility:
 				cs.visibility = cs.visibility%layer.VISIBLITY_DIRECT + 1
-			case "Post":
+			case composePost:
 				if cs.post(ctx) {
 					return
 				}
-			case "Discard":
+			case composeDiscard:
 				if cs.discard(ctx) {
 					return
 				}
@@ -225,16 +247,16 @@ func (cs *ComposeScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx App
 	cs.draw(screen, ctx)
 }
 
-func (cs *ComposeScreen) draw(screen tcell.Screen, ctx ApplicationContext) {
+func (cs *ComposeScreen) draw(screen tcell.Screen, ctx app.ApplicationContext) {
 	textStyle := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
 	w, h := screen.Size()
 
-	items := make([]component.MenuItem, len(composeItems))
-	for i, label := range composeItems {
-		items[i].Label = label
+	var items []component.MenuItem
+	for item := composeEdit; item <= composeDiscard; item++ {
+		items = append(items, component.MenuItem{Label: composeLabel(item)})
 	}
-	items[1].Value = strings.ToLower(layer.VisiblityToText(cs.visibility))
-	items[1].Choice = true
+	items[composeVisibility].Value = strings.ToLower(layer.VisiblityToText(cs.visibility))
+	items[composeVisibility].Choice = true
 
 	y := 1 + component.DrawMenu(1, 1, items, cs.cursor, screen, textStyle)
 	y += 1 + component.DrawHint(3, y+1, w-6, cs.hint(), screen, textStyle)

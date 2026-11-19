@@ -3,9 +3,7 @@ package app
 import (
 	"fmt"
 	"os"
-	"tedi/config"
 	utils "tedi/utils"
-	"time"
 
 	"github.com/gdamore/tcell/v2"
 )
@@ -126,14 +124,6 @@ func NewMainAppCtx(termsig chan int, transsig chan string, footerfunc func(strin
 
 func (m *MainAppContexts) Exit(exitcode int) {
 	m.termination_signal <- exitcode
-}
-
-func refreshInterval(ui config.UIConfiguration) time.Duration {
-	return time.Duration(ui.Refresh) * time.Second
-}
-
-func footerText(info string, esc string) string {
-	return " " + info + " | [Esc] " + esc + "  [F1] Help"
 }
 
 func (m *MainAppContexts) DrawFooterbar(content string) {
