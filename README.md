@@ -28,17 +28,4 @@ tedi
 
 Settings are saved to `~/.config/tedi/config.json`.
 The access token is kept in the system keyring (Secret Service, Keychain, Credential Manager) when one is available, and in the config file (mode 600) otherwise.
-
-## Keys
-| Key | |
-|---|---|
-| `↑` `↓` | select, scroll |
-| `←` `→` | page, change value, choose action |
-| `Enter` | open, run |
-| `Esc` / `Backspace` | back, menu on the timeline |
-| `Tab` | notifications |
-| `F1` | keys for the current screen |
-
-Timelines, writing, your profile, refresh, CW and quit are in the menu. Reply, react, renote and the author's profile are along the bottom of an opened note.
-
-Writing uses `$VISUAL` or `$EDITOR` (default `vi`).
+Notes are written in `$VISUAL` or `$EDITOR` (default `vi`).

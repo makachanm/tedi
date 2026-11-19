@@ -123,10 +123,6 @@ func (ps *ProfileScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app
 			ctx.Back()
 			return
 
-		case "f1":
-			ctx.Forward("profile-help", nil)
-			return
-
 		case "tab":
 			ctx.Forward("noti", nil)
 			return

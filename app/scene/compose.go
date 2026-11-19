@@ -195,10 +195,6 @@ func (cs *ComposeScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app
 				return
 			}
 
-		case "f1":
-			ctx.Forward("compose-help", nil)
-			return
-
 		case "up":
 			cs.cursor = max(cs.cursor-1, 0)
 		case "down":

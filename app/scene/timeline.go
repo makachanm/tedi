@@ -127,10 +127,6 @@ func (ts *TimelineScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx ap
 			ctx.Forward("menu", nil)
 			return
 
-		case "f1":
-			ctx.Forward("main-help", nil)
-			return
-
 		case "up":
 			ts.timelinelock.Lock()
 			ts.Timelines.MoveCursor(-1)

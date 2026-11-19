@@ -126,10 +126,6 @@ func (ns *NoteScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app.Ap
 			ctx.Back()
 			return
 
-		case "f1":
-			ctx.Forward("note-help", nil)
-			return
-
 		case "tab":
 			ctx.Forward("noti", ns.snapshot())
 			return

@@ -359,11 +359,6 @@ func runClient(args []string) error {
 	m.RegisterScene("profile", profile)
 	m.RegisterScene("note", detail)
 	m.RegisterScene("compose", compose)
-	m.RegisterScene("main-help", scene.NewTimelineHelp())
-	m.RegisterScene("noti-help", scene.NewNotificationHelp())
-	m.RegisterScene("note-help", scene.NewNoteHelp())
-	m.RegisterScene("profile-help", scene.NewProfileHelp())
-	m.RegisterScene("compose-help", scene.NewComposeHelp())
 	m.Mainloop()
 	return nil
 }

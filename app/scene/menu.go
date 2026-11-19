@@ -18,7 +18,6 @@ const (
 	menuProfile
 	menuRefresh
 	menuCW
-	menuGuide
 	menuQuit
 )
 
@@ -58,8 +57,6 @@ func (ms *MenuScreen) item(item menuItem) component.MenuItem {
 			return component.MenuItem{Label: "CW content", Value: "shown", Choice: true}
 		}
 		return component.MenuItem{Label: "CW content", Value: "hidden", Choice: true}
-	case menuGuide:
-		return component.MenuItem{Label: "Key guide"}
 	case menuQuit:
 		return component.MenuItem{Label: "Quit"}
 	}
@@ -103,8 +100,6 @@ func (ms *MenuScreen) run(item menuItem, ctx app.ApplicationContext) bool {
 	case menuCW:
 		ms.toggleCW()
 		return false
-	case menuGuide:
-		ctx.Replace("main-help")
 	case menuQuit:
 		ctx.Exit(0)
 	}
@@ -128,10 +123,6 @@ func (ms *MenuScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app.Ap
 
 		case "esc":
 			ctx.Back()
-			return
-
-		case "f1":
-			ctx.Replace("main-help")
 			return
 
 		case "up":

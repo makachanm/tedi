@@ -12,7 +12,7 @@ func refreshInterval(ui config.UIConfiguration) time.Duration {
 }
 
 func footerText(info string, esc string) string {
-	return " " + info + " | [Esc] " + esc + "  [F1] Help"
+	return " " + info + " | [Esc] " + esc
 }
 
 func keyName(ev *tcell.EventKey) string {
@@ -37,8 +37,6 @@ func keyName(ev *tcell.EventKey) string {
 		return "enter"
 	case tcell.KeyTab:
 		return "tab"
-	case tcell.KeyF1:
-		return "f1"
 	case tcell.KeyCtrlC:
 		return "C-c"
 	}
