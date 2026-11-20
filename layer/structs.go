@@ -101,7 +101,6 @@ type Note struct {
 	ReactionCount int
 
 	Medias    []string
-	MediaIds  []string
 	RenotedBy string
 	ReplyTo   string
 	Url       string

@@ -9,7 +9,6 @@ type MastodonUser struct {
 }
 
 type MastodonMedia struct {
-	Id  string `json:"id"`
 	URL string `json:"url"`
 }
 

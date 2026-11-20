@@ -10,7 +10,6 @@ type MisskeyUser struct {
 }
 
 type MisskeyFile struct {
-	Id  string `json:"id"`
 	URL string `json:"url"`
 }
 

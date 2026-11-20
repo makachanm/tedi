@@ -22,10 +22,9 @@ type Client interface {
 
 	PostRenote(note_id string) bool
 	PostReaction(note_id string) bool
-	PostNote(text string, visibility Visiblity, reply_to string, quote *Note) error
+	PostNote(text string, visibility Visiblity, reply_to string, quote *Note) (Note, error)
 
 	GetNoteSource(note_id string) (string, error)
-	EditNote(note Note, text string) (Note, error)
 	DeleteNote(note_id string) error
 }
 
