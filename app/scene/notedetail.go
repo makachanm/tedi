@@ -2,6 +2,7 @@ package scene
 
 import (
 	"fmt"
+	"strings"
 	"tedi/app"
 	"tedi/component"
 	"tedi/config"
@@ -124,6 +125,12 @@ func (ns *NoteScreen) WindowChangedScene(screen tcell.Screen, ctx app.Applicatio
 }
 
 func (ns *NoteScreen) runAction(action noteAction, armed bool, ctx app.ApplicationContext) bool {
+	if (action == actionRewrite || action == actionDelete) && !armed {
+		ns.confirm = true
+		ns.notice = "Press Enter again to " + strings.ToLower(actionLabel(action))
+		return false
+	}
+
 	switch action {
 	case actionReply:
 		if ns.note.Id == "" {
@@ -147,11 +154,6 @@ func (ns *NoteScreen) runAction(action noteAction, armed bool, ctx app.Applicati
 		ctx.Forward("compose", restore)
 		return true
 	case actionRewrite:
-		if !armed {
-			ns.confirm = true
-			ns.notice = "Press Enter again to rewrite"
-			return false
-		}
 		text, err := ns.FetchLayer.GetNoteSource(ns.note.Id)
 		if err != nil {
 			ns.notice = "Could not load the note text"
@@ -176,11 +178,6 @@ func (ns *NoteScreen) runAction(action noteAction, armed bool, ctx app.Applicati
 		})
 		return true
 	case actionDelete:
-		if !armed {
-			ns.confirm = true
-			ns.notice = "Press Enter again to delete"
-			return false
-		}
 		if err := ns.FetchLayer.DeleteNote(ns.note.Id); err != nil {
 			ns.notice = "Delete failed"
 			return false

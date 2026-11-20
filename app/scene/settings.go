@@ -134,12 +134,26 @@ func (v *settingsView) label(item settingsItem) string {
 	return ""
 }
 
-func (v *settingsView) adjustHeight(delta int) {
-	h := v.cfg.UI.MaxItemHeight + delta
-	if h < config.ItemHeightMin || h > config.ItemHeightMax {
-		return
+func (v *settingsView) adjust(item settingsItem, delta int) {
+	switch item {
+	case itemHeight:
+		h := v.cfg.UI.MaxItemHeight + delta
+		if h >= config.ItemHeightMin && h <= config.ItemHeightMax {
+			v.cfg.UI.MaxItemHeight = h
+		}
+	case itemRefresh:
+		step(config.RefreshSteps, &v.cfg.UI.Refresh, delta)
+	case itemLimit:
+		step(config.LimitSteps, &v.cfg.UI.Limit, delta)
+	case itemVisibility:
+		step(config.VisibilitySteps, &v.cfg.UI.Visibility, delta)
+	case itemTimeline:
+		step(config.TimelineSteps, &v.cfg.UI.Timeline, delta)
+	case itemTextColor, itemBarColor, itemRenoteColor, itemReactionColor, itemMentionColor:
+		step(config.ColorSteps, v.color(item), delta)
+	case itemLayout, itemTime, itemCW:
+		v.toggle(item)
 	}
-	v.cfg.UI.MaxItemHeight = h
 }
 
 func refreshText(sec int) string {
@@ -150,38 +164,6 @@ func refreshText(sec int) string {
 		return fmt.Sprintf("%dm", sec/60)
 	}
 	return fmt.Sprintf("%ds", sec)
-}
-
-func (v *settingsView) adjustRefresh(delta int) {
-	i := slices.Index(config.RefreshSteps, v.cfg.UI.Refresh) + delta
-	if i < 0 || i >= len(config.RefreshSteps) {
-		return
-	}
-	v.cfg.UI.Refresh = config.RefreshSteps[i]
-}
-
-func (v *settingsView) adjustLimit(delta int) {
-	i := slices.Index(config.LimitSteps, v.cfg.UI.Limit) + delta
-	if i < 0 || i >= len(config.LimitSteps) {
-		return
-	}
-	v.cfg.UI.Limit = config.LimitSteps[i]
-}
-
-func (v *settingsView) adjustVisibility(delta int) {
-	i := slices.Index(config.VisibilitySteps, v.cfg.UI.Visibility) + delta
-	if i < 0 || i >= len(config.VisibilitySteps) {
-		return
-	}
-	v.cfg.UI.Visibility = config.VisibilitySteps[i]
-}
-
-func (v *settingsView) adjustTimeline(delta int) {
-	i := slices.Index(config.TimelineSteps, v.cfg.UI.Timeline) + delta
-	if i < 0 || i >= len(config.TimelineSteps) {
-		return
-	}
-	v.cfg.UI.Timeline = config.TimelineSteps[i]
 }
 
 func colorLabel(item settingsItem) string {
@@ -216,13 +198,12 @@ func (v *settingsView) color(item settingsItem) *string {
 	return nil
 }
 
-func (v *settingsView) adjustColor(item settingsItem, delta int) {
-	c := v.color(item)
-	i := slices.Index(config.ColorSteps, *c) + delta
-	if i < 0 || i >= len(config.ColorSteps) {
+func step[T comparable](steps []T, value *T, delta int) {
+	i := slices.Index(steps, *value) + delta
+	if i < 0 || i >= len(steps) {
 		return
 	}
-	*c = config.ColorSteps[i]
+	*value = steps[i]
 }
 
 func onOff(b bool) string {
@@ -325,39 +306,9 @@ func (v *settingsView) handleKey(ev *tcell.EventKey) (SettingsAction, bool) {
 		}
 
 	case ev.Key() == tcell.KeyLeft || (ev.Key() == tcell.KeyRune && ev.Rune() == '-'):
-		switch selected {
-		case itemHeight:
-			v.adjustHeight(-1)
-		case itemRefresh:
-			v.adjustRefresh(-1)
-		case itemLimit:
-			v.adjustLimit(-1)
-		case itemVisibility:
-			v.adjustVisibility(-1)
-		case itemTimeline:
-			v.adjustTimeline(-1)
-		case itemTextColor, itemBarColor, itemRenoteColor, itemReactionColor, itemMentionColor:
-			v.adjustColor(selected, -1)
-		case itemLayout, itemTime, itemCW:
-			v.toggle(selected)
-		}
+		v.adjust(selected, -1)
 	case ev.Key() == tcell.KeyRight || (ev.Key() == tcell.KeyRune && (ev.Rune() == '+' || ev.Rune() == '=')):
-		switch selected {
-		case itemHeight:
-			v.adjustHeight(1)
-		case itemRefresh:
-			v.adjustRefresh(1)
-		case itemLimit:
-			v.adjustLimit(1)
-		case itemVisibility:
-			v.adjustVisibility(1)
-		case itemTimeline:
-			v.adjustTimeline(1)
-		case itemTextColor, itemBarColor, itemRenoteColor, itemReactionColor, itemMentionColor:
-			v.adjustColor(selected, 1)
-		case itemLayout, itemTime, itemCW:
-			v.toggle(selected)
-		}
+		v.adjust(selected, 1)
 
 	case ev.Key() == tcell.KeyEnter:
 		switch selected {
