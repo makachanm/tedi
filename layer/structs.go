@@ -103,6 +103,7 @@ type Note struct {
 	Medias    []string
 	RenotedBy string
 	ReplyTo   string
+	Url       string
 }
 
 type User struct {

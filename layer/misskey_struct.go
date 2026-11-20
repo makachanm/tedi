@@ -26,6 +26,8 @@ type MisskeyNote struct {
 	Renote         *MisskeyNote  `json:"renote,omitempty"`
 	ReplyId        *string       `json:"replyId"`
 	RepliesCount   int           `json:"repliesCount"`
+	Url            *string       `json:"url"`
+	Uri            *string       `json:"uri"`
 }
 
 type MisskeyNotification struct {

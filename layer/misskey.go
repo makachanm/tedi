@@ -86,6 +86,12 @@ func (n *MisskeyNote) toNote() Note {
 	if n.ReplyId != nil {
 		note.ReplyTo = *n.ReplyId
 	}
+	if n.Uri != nil {
+		note.Url = *n.Uri
+	}
+	if n.Url != nil && *n.Url != "" {
+		note.Url = *n.Url
+	}
 
 	for _, file := range n.Files {
 		note.Medias = append(note.Medias, file.URL)
@@ -303,11 +309,14 @@ func (m *MisskeyFetch) GetUserNotes(user_id string) []Note {
 	return m.timeline("api/users/notes", map[string]any{"userId": user_id})
 }
 
-func (m *MisskeyFetch) PostNote(text string, visibility Visiblity, reply_to string) error {
+func (m *MisskeyFetch) PostNote(text string, visibility Visiblity, reply_to string, quote *Note) error {
 	_, platform := valueToPlatformVisblity(visibility)
 	body := map[string]any{"text": text, "visibility": platform}
 	if reply_to != "" {
 		body["replyId"] = reply_to
+	}
+	if quote != nil {
+		body["renoteId"] = quote.Id
 	}
 	_, err := m.request("api/notes/create", body)
 	return err

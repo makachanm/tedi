@@ -72,6 +72,10 @@ func (n *MastodonNote) toNote() Note {
 	if n.InReplyTo != nil {
 		note.ReplyTo = *n.InReplyTo
 	}
+	note.Url = n.Uri
+	if n.Url != nil && *n.Url != "" {
+		note.Url = *n.Url
+	}
 
 	for _, media := range n.Medias {
 		note.Medias = append(note.Medias, media.URL)
@@ -252,7 +256,14 @@ func (m *MastodonFetch) GetUserNotes(user_id string) []Note {
 	return m.timeline("api/v1/accounts/"+url.PathEscape(user_id)+"/statuses", url.Values{})
 }
 
-func (m *MastodonFetch) PostNote(text string, visibility Visiblity, reply_to string) error {
+func (m *MastodonFetch) PostNote(text string, visibility Visiblity, reply_to string, quote *Note) error {
+	if quote != nil {
+		link := quote.Url
+		if link == "" {
+			return fmt.Errorf("quoted note has no link")
+		}
+		text += "\n\nRE: " + link
+	}
 	platform, _ := valueToPlatformVisblity(visibility)
 	form := url.Values{"status": {text}, "visibility": {platform}}
 	if reply_to != "" {

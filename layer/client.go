@@ -22,7 +22,7 @@ type Client interface {
 
 	PostRenote(note_id string) bool
 	PostReaction(note_id string) bool
-	PostNote(text string, visibility Visiblity, reply_to string) error
+	PostNote(text string, visibility Visiblity, reply_to string, quote *Note) error
 }
 
 func New(kind string, instanceURL string, token string, limit int) (Client, error) {

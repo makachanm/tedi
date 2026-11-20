@@ -24,6 +24,8 @@ type MastodonNote struct {
 	Medias          []MastodonMedia `json:"media_attachments"`
 	RenotedField    *MastodonNote   `json:"reblog,omitempty"`
 	InReplyTo       *string         `json:"in_reply_to_id"`
+	Url             *string         `json:"url"`
+	Uri             string          `json:"uri"`
 }
 
 type MastodonContext struct {
