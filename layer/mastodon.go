@@ -3,6 +3,7 @@ package layer
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -29,13 +30,21 @@ func NewMastodonFetch(token string, insurl string, limit int) (*MastodonFetch, e
 	return &MastodonFetch{token: token, instance_url: u, limit: limit}, nil
 }
 
-func (m *MastodonFetch) request(method string, path string, query url.Values) ([]byte, error) {
+func (m *MastodonFetch) request(method string, path string, params url.Values) ([]byte, error) {
 	u := m.instance_url.JoinPath(path)
-	u.RawQuery = query.Encode()
+	var body io.Reader
+	if method == http.MethodGet {
+		u.RawQuery = params.Encode()
+	} else {
+		body = strings.NewReader(params.Encode())
+	}
 
-	req, err := http.NewRequest(method, u.String(), nil)
+	req, err := http.NewRequest(method, u.String(), body)
 	if err != nil {
 		return nil, fmt.Errorf("create http request: %w", err)
+	}
+	if body != nil {
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	}
 	req.Header.Set("Authorization", "Bearer "+m.token)
 
@@ -270,7 +279,7 @@ func (m *MastodonFetch) PostNote(text string, visibility Visiblity, reply_to str
 		form.Set("in_reply_to_id", reply_to)
 	}
 
-	d, err := m.send(http.MethodPost, "api/v1/statuses", form)
+	d, err := m.request(http.MethodPost, "api/v1/statuses", form)
 	if err != nil {
 		return Note{}, err
 	}
@@ -280,17 +289,6 @@ func (m *MastodonFetch) PostNote(text string, visibility Visiblity, reply_to str
 		return Note{}, fmt.Errorf("decode note: %w", err)
 	}
 	return mNote.toNote(), nil
-}
-
-func (m *MastodonFetch) send(method string, path string, form url.Values) ([]byte, error) {
-	req, err := http.NewRequest(method, m.instance_url.JoinPath(path).String(), strings.NewReader(form.Encode()))
-	if err != nil {
-		return nil, fmt.Errorf("create http request: %w", err)
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Authorization", "Bearer "+m.token)
-
-	return doRequest(req)
 }
 
 func (m *MastodonFetch) GetNoteSource(note_id string) (string, error) {
