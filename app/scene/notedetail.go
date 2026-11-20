@@ -157,8 +157,16 @@ func (ns *NoteScreen) runAction(action noteAction, armed bool, ctx app.Applicati
 			ns.notice = "Could not load the note text"
 			return false
 		}
+		var reply *layer.Note
+		if ns.note.ReplyTo != "" {
+			parent, err := ns.FetchLayer.GetNote(ns.note.ReplyTo)
+			if err != nil {
+				parent = layer.Note{Id: ns.note.ReplyTo}
+			}
+			reply = &parent
+		}
 		restore := ns.snapshot()
-		ns.compose.openRewrite(ns.note, text)
+		ns.compose.openRewrite(ns.note, text, reply)
 		ctx.Forward("compose", func() {
 			restore()
 			if ns.compose.rewritten != nil {

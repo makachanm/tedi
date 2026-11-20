@@ -24,6 +24,7 @@ type ComposeScreen struct {
 	reply      *layer.Note
 	quote      *layer.Note
 	rewrite    *layer.Note
+	deleted    bool
 	rewritten  *layer.Note
 	notice     string
 	confirm    bool
@@ -44,6 +45,7 @@ func (cs *ComposeScreen) open(reply *layer.Note) {
 	cs.reply = reply
 	cs.quote = nil
 	cs.rewrite = nil
+	cs.deleted = false
 	cs.rewritten = nil
 	cs.visibility = configVisibility(cs.config.UI.Visibility)
 	if reply != nil {
@@ -66,8 +68,8 @@ func (cs *ComposeScreen) openQuote(quote layer.Note) {
 	cs.visibility = quote.Visiblity
 }
 
-func (cs *ComposeScreen) openRewrite(note layer.Note, text string) {
-	cs.open(nil)
+func (cs *ComposeScreen) openRewrite(note layer.Note, text string, reply *layer.Note) {
+	cs.open(reply)
 	cs.rewrite = &note
 	cs.text = text
 	cs.visibility = note.Visiblity
@@ -180,9 +182,6 @@ func visibilityHint(v layer.Visiblity) string {
 
 func (cs *ComposeScreen) hint() string {
 	if composeItem(cs.cursor) == composeVisibility {
-		if cs.rewrite != nil {
-			return "Visibility can't be changed when rewriting."
-		}
 		return visibilityHint(cs.visibility)
 	}
 	return ""
@@ -193,30 +192,31 @@ func (cs *ComposeScreen) post(ctx app.ApplicationContext) bool {
 		cs.notice = "Nothing to post"
 		return false
 	}
-	if cs.rewrite != nil {
-		note, err := cs.FetchLayer.EditNote(*cs.rewrite, cs.text)
-		if err != nil {
-			cs.notice = "Rewrite failed"
+	if cs.rewrite != nil && !cs.deleted {
+		if err := cs.FetchLayer.DeleteNote(cs.rewrite.Id); err != nil {
+			cs.notice = "Could not delete the old note"
 			return false
 		}
-		cs.rewritten = &note
-		ctx.Back()
-		return true
+		cs.deleted = true
 	}
 	replyTo := ""
 	if cs.reply != nil {
 		replyTo = cs.reply.Id
 	}
-	if err := cs.FetchLayer.PostNote(cs.text, cs.visibility, replyTo, cs.quote); err != nil {
+	note, err := cs.FetchLayer.PostNote(cs.text, cs.visibility, replyTo, cs.quote)
+	if err != nil {
 		cs.notice = "Post failed"
 		return false
+	}
+	if cs.rewrite != nil {
+		cs.rewritten = &note
 	}
 	ctx.Back()
 	return true
 }
 
 func (cs *ComposeScreen) discard(ctx app.ApplicationContext) bool {
-	if strings.TrimSpace(cs.text) != cs.initial && !cs.confirm {
+	if (strings.TrimSpace(cs.text) != cs.initial || cs.deleted) && !cs.confirm {
 		cs.confirm = true
 		cs.notice = "Press again to discard"
 		return false
@@ -249,11 +249,11 @@ func (cs *ComposeScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app
 			cs.cursor = min(cs.cursor+1, int(composeDiscard))
 
 		case "left":
-			if composeItem(cs.cursor) == composeVisibility && cs.rewrite == nil {
+			if composeItem(cs.cursor) == composeVisibility {
 				cs.visibility = (cs.visibility+2)%layer.VISIBLITY_DIRECT + 1
 			}
 		case "right":
-			if composeItem(cs.cursor) == composeVisibility && cs.rewrite == nil {
+			if composeItem(cs.cursor) == composeVisibility {
 				cs.visibility = cs.visibility%layer.VISIBLITY_DIRECT + 1
 			}
 
@@ -262,9 +262,7 @@ func (cs *ComposeScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app
 			case composeEdit:
 				cs.edit(screen)
 			case composeVisibility:
-				if cs.rewrite == nil {
-					cs.visibility = cs.visibility%layer.VISIBLITY_DIRECT + 1
-				}
+				cs.visibility = cs.visibility%layer.VISIBLITY_DIRECT + 1
 			case composePost:
 				if cs.post(ctx) {
 					return
