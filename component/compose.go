@@ -11,7 +11,7 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-func DrawComposePreview(x int, y int, width int, rows int, author string, text string, visibility layer.Visiblity, reply *layer.Note, ctx tcell.Screen, style tcell.Style, scroll int) int {
+func DrawComposePreview(x int, y int, width int, rows int, author string, text string, visibility layer.Visiblity, reply *layer.Note, quote *layer.Note, ctx tcell.Screen, style tcell.Style, scroll int) int {
 	if width < 10 || rows <= 0 {
 		return 0
 	}
@@ -39,6 +39,13 @@ func DrawComposePreview(x int, y int, width int, rows int, author string, text s
 		lines = append(lines, line{"(empty)", dim})
 	} else {
 		lines = append(lines, wrapLines(text, width, style)...)
+	}
+	if quote != nil {
+		lines = append(lines, line{"", style})
+		lines = append(lines, line{"❝ Quoting @" + quote.Author_finger, style.Foreground(utils.RenoteColor)})
+		for _, q := range wrapLines(htmlToText(quote.Content, false), width-2, dim) {
+			lines = append(lines, line{"│ " + q.text, dim})
+		}
 	}
 	lines = append(lines, line{"", style})
 	lines = append(lines, line{fmt.Sprintf("%d characters", utf8.RuneCountInString(text)), dim})

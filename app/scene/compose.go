@@ -22,6 +22,7 @@ type ComposeScreen struct {
 	initial    string
 	visibility layer.Visiblity
 	reply      *layer.Note
+	quote      *layer.Note
 	notice     string
 	confirm    bool
 	pending    bool
@@ -39,6 +40,7 @@ func NewComposeScreen(cfg config.Configuration, client layer.Client) *ComposeScr
 func (cs *ComposeScreen) open(reply *layer.Note) {
 	cs.text = ""
 	cs.reply = reply
+	cs.quote = nil
 	cs.visibility = configVisibility(cs.config.UI.Visibility)
 	if reply != nil {
 		cs.visibility = reply.Visiblity
@@ -52,6 +54,12 @@ func (cs *ComposeScreen) open(reply *layer.Note) {
 	cs.pending = true
 	cs.scroll = 0
 	cs.cursor = 0
+}
+
+func (cs *ComposeScreen) openQuote(quote layer.Note) {
+	cs.open(nil)
+	cs.quote = &quote
+	cs.visibility = quote.Visiblity
 }
 
 func editorCommand() []string {
@@ -174,7 +182,7 @@ func (cs *ComposeScreen) post(ctx app.ApplicationContext) bool {
 	if cs.reply != nil {
 		replyTo = cs.reply.Id
 	}
-	if err := cs.FetchLayer.PostNote(cs.text, cs.visibility, replyTo); err != nil {
+	if err := cs.FetchLayer.PostNote(cs.text, cs.visibility, replyTo, cs.quote); err != nil {
 		cs.notice = "Post failed"
 		return false
 	}
@@ -270,11 +278,14 @@ func (cs *ComposeScreen) draw(screen tcell.Screen, ctx app.ApplicationContext) {
 	if author == "" {
 		author = "me"
 	}
-	cs.scroll = component.DrawComposePreview(2, y, w-4, h-1-y, author, cs.text, cs.visibility, cs.reply, screen, textStyle, cs.scroll)
+	cs.scroll = component.DrawComposePreview(2, y, w-4, h-1-y, author, cs.text, cs.visibility, cs.reply, cs.quote, screen, textStyle, cs.scroll)
 
 	info := "Compose"
 	if cs.reply != nil {
 		info = "Reply"
+	}
+	if cs.quote != nil {
+		info = "Quote"
 	}
 	if cs.notice != "" {
 		info += " | " + cs.notice

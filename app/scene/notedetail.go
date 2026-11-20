@@ -28,10 +28,11 @@ const (
 	actionReply noteAction = iota
 	actionReact
 	actionRenote
+	actionQuote
 	actionAuthor
 )
 
-var noteActions = []string{"Reply", "React", "Renote", "Author"}
+var noteActions = []string{"Reply", "React", "Renote", "Quote", "Author"}
 
 type NoteScreen struct {
 	noteView
@@ -104,6 +105,14 @@ func (ns *NoteScreen) runAction(action noteAction, ctx app.ApplicationContext) b
 		ns.notice = actOnNote(ns.FetchLayer, ns.note, true)
 	case actionRenote:
 		ns.notice = actOnNote(ns.FetchLayer, ns.note, false)
+	case actionQuote:
+		if ns.note.Id == "" {
+			return false
+		}
+		restore := ns.snapshot()
+		ns.compose.openQuote(ns.note)
+		ctx.Forward("compose", restore)
+		return true
 	case actionAuthor:
 		if ns.note.Author_id == "" {
 			return false
