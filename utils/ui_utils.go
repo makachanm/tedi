@@ -87,3 +87,14 @@ func FillLine(s tcell.Screen, y int, text string, style tcell.Style) {
 	}
 	WriteTo(s, 0, y, text, style)
 }
+
+func OwnFinger(account string, finger string) bool {
+	if account == "" || finger == "" {
+		return false
+	}
+	if finger == account {
+		return true
+	}
+	user, _, _ := strings.Cut(account, "@")
+	return !strings.Contains(finger, "@") && finger == user
+}

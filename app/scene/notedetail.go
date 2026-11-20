@@ -17,9 +17,10 @@ type noteView struct {
 	replies   []layer.Note
 	notice    string
 
-	scroll int
-	jump   bool
-	action int
+	scroll  int
+	jump    bool
+	action  int
+	confirm bool
 }
 
 type noteAction int
@@ -29,10 +30,42 @@ const (
 	actionReact
 	actionRenote
 	actionQuote
+	actionRewrite
+	actionDelete
 	actionAuthor
 )
 
-var noteActions = []string{"Reply", "React", "Renote", "Quote", "Author"}
+func actionLabel(action noteAction) string {
+	switch action {
+	case actionReply:
+		return "Reply"
+	case actionReact:
+		return "React"
+	case actionRenote:
+		return "Renote"
+	case actionQuote:
+		return "Quote"
+	case actionRewrite:
+		return "Rewrite"
+	case actionDelete:
+		return "Delete"
+	case actionAuthor:
+		return "Author"
+	}
+	return ""
+}
+
+func (ns *NoteScreen) mine() bool {
+	return ns.note.Id != "" && utils.OwnFinger(ns.config.Session.Account, ns.note.Author_finger)
+}
+
+func (ns *NoteScreen) actions() []noteAction {
+	actions := []noteAction{actionReply, actionReact, actionRenote, actionQuote}
+	if ns.mine() {
+		actions = append(actions, actionRewrite, actionDelete)
+	}
+	return append(actions, actionAuthor)
+}
 
 type NoteScreen struct {
 	noteView
@@ -90,7 +123,7 @@ func (ns *NoteScreen) InitScene(screen tcell.Screen, ctx app.ApplicationContext)
 func (ns *NoteScreen) WindowChangedScene(screen tcell.Screen, ctx app.ApplicationContext) {
 }
 
-func (ns *NoteScreen) runAction(action noteAction, ctx app.ApplicationContext) bool {
+func (ns *NoteScreen) runAction(action noteAction, armed bool, ctx app.ApplicationContext) bool {
 	switch action {
 	case actionReply:
 		if ns.note.Id == "" {
@@ -113,6 +146,39 @@ func (ns *NoteScreen) runAction(action noteAction, ctx app.ApplicationContext) b
 		ns.compose.openQuote(ns.note)
 		ctx.Forward("compose", restore)
 		return true
+	case actionRewrite:
+		if !armed {
+			ns.confirm = true
+			ns.notice = "Press Enter again to rewrite"
+			return false
+		}
+		text, err := ns.FetchLayer.GetNoteSource(ns.note.Id)
+		if err != nil {
+			ns.notice = "Could not load the note text"
+			return false
+		}
+		restore := ns.snapshot()
+		ns.compose.openRewrite(ns.note, text)
+		ctx.Forward("compose", func() {
+			restore()
+			if ns.compose.rewritten != nil {
+				ns.open(*ns.compose.rewritten)
+				ns.notice = "Rewritten"
+			}
+		})
+		return true
+	case actionDelete:
+		if !armed {
+			ns.confirm = true
+			ns.notice = "Press Enter again to delete"
+			return false
+		}
+		if err := ns.FetchLayer.DeleteNote(ns.note.Id); err != nil {
+			ns.notice = "Delete failed"
+			return false
+		}
+		ctx.Back()
+		return true
 	case actionAuthor:
 		if ns.note.Author_id == "" {
 			return false
@@ -128,6 +194,8 @@ func (ns *NoteScreen) runAction(action noteAction, ctx app.ApplicationContext) b
 func (ns *NoteScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app.ApplicationContext) {
 	if ev, ok := event.(*tcell.EventKey); ok {
 		ns.notice = ""
+		armed := ns.confirm
+		ns.confirm = false
 		switch keyName(ev) {
 		case "C-c":
 			ctx.Exit(0)
@@ -143,10 +211,10 @@ func (ns *NoteScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app.Ap
 		case "left":
 			ns.action = max(ns.action-1, 0)
 		case "right":
-			ns.action = min(ns.action+1, int(actionAuthor))
+			ns.action = min(ns.action+1, len(ns.actions())-1)
 
 		case "enter":
-			if ns.runAction(noteAction(ns.action), ctx) {
+			if ns.runAction(ns.actions()[ns.action], armed, ctx) {
 				return
 			}
 
@@ -170,7 +238,12 @@ func (ns *NoteScreen) drawNote(screen tcell.Screen, ctx app.ApplicationContext) 
 	w, h := screen.Size()
 
 	ns.rows = h - 4
-	component.DrawActionBar(1, h-2, noteActions, ns.action, screen, textStyle)
+	var labels []string
+	for _, action := range ns.actions() {
+		labels = append(labels, actionLabel(action))
+	}
+	ns.action = min(ns.action, len(labels)-1)
+	component.DrawActionBar(1, h-2, labels, ns.action, screen, textStyle)
 	ns.scroll, ns.total = component.DrawNoteDetail(2, 1, w-4, ns.rows, ns.ancestors, ns.note, ns.replies, screen, textStyle, ns.scroll, ns.jump)
 	ns.jump = false
 

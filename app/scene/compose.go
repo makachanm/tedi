@@ -23,6 +23,8 @@ type ComposeScreen struct {
 	visibility layer.Visiblity
 	reply      *layer.Note
 	quote      *layer.Note
+	rewrite    *layer.Note
+	rewritten  *layer.Note
 	notice     string
 	confirm    bool
 	pending    bool
@@ -41,10 +43,12 @@ func (cs *ComposeScreen) open(reply *layer.Note) {
 	cs.text = ""
 	cs.reply = reply
 	cs.quote = nil
+	cs.rewrite = nil
+	cs.rewritten = nil
 	cs.visibility = configVisibility(cs.config.UI.Visibility)
 	if reply != nil {
 		cs.visibility = reply.Visiblity
-		if reply.Author_finger != "" && reply.Author_finger != cs.config.Session.Account {
+		if reply.Author_finger != "" && !utils.OwnFinger(cs.config.Session.Account, reply.Author_finger) {
 			cs.text = "@" + reply.Author_finger + " "
 		}
 	}
@@ -60,6 +64,14 @@ func (cs *ComposeScreen) openQuote(quote layer.Note) {
 	cs.open(nil)
 	cs.quote = &quote
 	cs.visibility = quote.Visiblity
+}
+
+func (cs *ComposeScreen) openRewrite(note layer.Note, text string) {
+	cs.open(nil)
+	cs.rewrite = &note
+	cs.text = text
+	cs.visibility = note.Visiblity
+	cs.initial = strings.TrimSpace(text)
 }
 
 func editorCommand() []string {
@@ -168,6 +180,9 @@ func visibilityHint(v layer.Visiblity) string {
 
 func (cs *ComposeScreen) hint() string {
 	if composeItem(cs.cursor) == composeVisibility {
+		if cs.rewrite != nil {
+			return "Visibility can't be changed when rewriting."
+		}
 		return visibilityHint(cs.visibility)
 	}
 	return ""
@@ -177,6 +192,16 @@ func (cs *ComposeScreen) post(ctx app.ApplicationContext) bool {
 	if strings.TrimSpace(cs.text) == "" {
 		cs.notice = "Nothing to post"
 		return false
+	}
+	if cs.rewrite != nil {
+		note, err := cs.FetchLayer.EditNote(*cs.rewrite, cs.text)
+		if err != nil {
+			cs.notice = "Rewrite failed"
+			return false
+		}
+		cs.rewritten = &note
+		ctx.Back()
+		return true
 	}
 	replyTo := ""
 	if cs.reply != nil {
@@ -224,11 +249,11 @@ func (cs *ComposeScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app
 			cs.cursor = min(cs.cursor+1, int(composeDiscard))
 
 		case "left":
-			if composeItem(cs.cursor) == composeVisibility {
+			if composeItem(cs.cursor) == composeVisibility && cs.rewrite == nil {
 				cs.visibility = (cs.visibility+2)%layer.VISIBLITY_DIRECT + 1
 			}
 		case "right":
-			if composeItem(cs.cursor) == composeVisibility {
+			if composeItem(cs.cursor) == composeVisibility && cs.rewrite == nil {
 				cs.visibility = cs.visibility%layer.VISIBLITY_DIRECT + 1
 			}
 
@@ -237,7 +262,9 @@ func (cs *ComposeScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app
 			case composeEdit:
 				cs.edit(screen)
 			case composeVisibility:
-				cs.visibility = cs.visibility%layer.VISIBLITY_DIRECT + 1
+				if cs.rewrite == nil {
+					cs.visibility = cs.visibility%layer.VISIBLITY_DIRECT + 1
+				}
 			case composePost:
 				if cs.post(ctx) {
 					return
@@ -286,6 +313,9 @@ func (cs *ComposeScreen) draw(screen tcell.Screen, ctx app.ApplicationContext) {
 	}
 	if cs.quote != nil {
 		info = "Quote"
+	}
+	if cs.rewrite != nil {
+		info = "Rewrite"
 	}
 	if cs.notice != "" {
 		info += " | " + cs.notice
