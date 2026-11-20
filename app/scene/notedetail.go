@@ -60,11 +60,11 @@ func (ns *NoteScreen) mine() bool {
 }
 
 func (ns *NoteScreen) actions() []noteAction {
-	actions := []noteAction{actionReply, actionReact, actionRenote, actionQuote}
+	actions := []noteAction{actionAuthor, actionReply, actionReact, actionRenote, actionQuote}
 	if ns.mine() {
 		actions = append(actions, actionRewrite, actionDelete)
 	}
-	return append(actions, actionAuthor)
+	return actions
 }
 
 type NoteScreen struct {
