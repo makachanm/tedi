@@ -95,6 +95,7 @@ func (n *MisskeyNote) toNote() Note {
 
 	for _, file := range n.Files {
 		note.Medias = append(note.Medias, file.URL)
+		note.MediaIds = append(note.MediaIds, file.Id)
 	}
 
 	return note
@@ -319,5 +320,46 @@ func (m *MisskeyFetch) PostNote(text string, visibility Visiblity, reply_to stri
 		body["renoteId"] = quote.Id
 	}
 	_, err := m.request("api/notes/create", body)
+	return err
+}
+
+func (m *MisskeyFetch) GetNoteSource(note_id string) (string, error) {
+	note, err := m.GetNote(note_id)
+	if err != nil {
+		return "", err
+	}
+	return note.Content, nil
+}
+
+func (m *MisskeyFetch) EditNote(note Note, text string) (Note, error) {
+	_, platform := valueToPlatformVisblity(note.Visiblity)
+	body := map[string]any{"text": text, "visibility": platform}
+	if note.Spoiler != "" {
+		body["cw"] = note.Spoiler
+	}
+	if note.ReplyTo != "" {
+		body["replyId"] = note.ReplyTo
+	}
+	if len(note.MediaIds) > 0 {
+		body["fileIds"] = note.MediaIds
+	}
+
+	d, err := m.request("api/notes/create", body)
+	if err != nil {
+		return Note{}, err
+	}
+
+	var created MisskeyCreated
+	if err := json.Unmarshal(d, &created); err != nil {
+		return Note{}, fmt.Errorf("decode note: %w", err)
+	}
+	if err := m.DeleteNote(note.Id); err != nil {
+		return Note{}, err
+	}
+	return created.CreatedNote.toNote(), nil
+}
+
+func (m *MisskeyFetch) DeleteNote(note_id string) error {
+	_, err := m.request("api/notes/delete", map[string]any{"noteId": note_id})
 	return err
 }

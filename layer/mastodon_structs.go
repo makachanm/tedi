@@ -9,7 +9,12 @@ type MastodonUser struct {
 }
 
 type MastodonMedia struct {
+	Id  string `json:"id"`
 	URL string `json:"url"`
+}
+
+type MastodonSource struct {
+	Text string `json:"text"`
 }
 
 type MastodonNote struct {

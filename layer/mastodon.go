@@ -79,6 +79,7 @@ func (n *MastodonNote) toNote() Note {
 
 	for _, media := range n.Medias {
 		note.Medias = append(note.Medias, media.URL)
+		note.MediaIds = append(note.MediaIds, media.Id)
 	}
 
 	return note
@@ -270,13 +271,53 @@ func (m *MastodonFetch) PostNote(text string, visibility Visiblity, reply_to str
 		form.Set("in_reply_to_id", reply_to)
 	}
 
-	req, err := http.NewRequest(http.MethodPost, m.instance_url.JoinPath("api/v1/statuses").String(), strings.NewReader(form.Encode()))
+	_, err := m.send(http.MethodPost, "api/v1/statuses", form)
+	return err
+}
+
+func (m *MastodonFetch) send(method string, path string, form url.Values) ([]byte, error) {
+	req, err := http.NewRequest(method, m.instance_url.JoinPath(path).String(), strings.NewReader(form.Encode()))
 	if err != nil {
-		return fmt.Errorf("create http request: %w", err)
+		return nil, fmt.Errorf("create http request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Authorization", "Bearer "+m.token)
 
-	_, err = doRequest(req)
+	return doRequest(req)
+}
+
+func (m *MastodonFetch) GetNoteSource(note_id string) (string, error) {
+	d, err := m.request(http.MethodGet, "api/v1/statuses/"+url.PathEscape(note_id)+"/source", nil)
+	if err != nil {
+		return "", err
+	}
+
+	var source MastodonSource
+	if err := json.Unmarshal(d, &source); err != nil {
+		return "", fmt.Errorf("decode note source: %w", err)
+	}
+	return source.Text, nil
+}
+
+func (m *MastodonFetch) EditNote(note Note, text string) (Note, error) {
+	form := url.Values{"status": {text}, "spoiler_text": {note.Spoiler}}
+	for _, id := range note.MediaIds {
+		form.Add("media_ids[]", id)
+	}
+
+	d, err := m.send(http.MethodPut, "api/v1/statuses/"+url.PathEscape(note.Id), form)
+	if err != nil {
+		return Note{}, err
+	}
+
+	var mNote MastodonNote
+	if err := json.Unmarshal(d, &mNote); err != nil {
+		return Note{}, fmt.Errorf("decode note: %w", err)
+	}
+	return mNote.toNote(), nil
+}
+
+func (m *MastodonFetch) DeleteNote(note_id string) error {
+	_, err := m.request(http.MethodDelete, "api/v1/statuses/"+url.PathEscape(note_id), nil)
 	return err
 }
