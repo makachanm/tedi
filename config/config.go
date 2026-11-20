@@ -32,6 +32,19 @@ const DefaultVisibility = "global"
 
 var VisibilitySteps = []string{"global", "quiet", "follower-only", "direct-only"}
 
+const (
+	TimelineHome   = "home"
+	TimelineLocal  = "local"
+	TimelineGlobal = "global"
+)
+
+var TimelineSteps = []string{TimelineHome, TimelineLocal, TimelineGlobal}
+
+const (
+	TimeRelative = "relative"
+	TimeAbsolute = "absolute"
+)
+
 type Configuration struct {
 	Session SessionConfiguration `json:"session"`
 	UI      UIConfiguration      `json:"ui"`
@@ -43,6 +56,9 @@ type UIConfiguration struct {
 	Refresh       int    `json:"refresh"`
 	Limit         int    `json:"limit"`
 	Visibility    string `json:"visibility"`
+	Timeline      string `json:"timeline"`
+	Time          string `json:"time"`
+	ShowCW        bool   `json:"showcw"`
 }
 
 const (
@@ -104,5 +120,11 @@ func (c *Configuration) applyDefaults() {
 	}
 	if !slices.Contains(VisibilitySteps, c.UI.Visibility) {
 		c.UI.Visibility = DefaultVisibility
+	}
+	if !slices.Contains(TimelineSteps, c.UI.Timeline) {
+		c.UI.Timeline = TimelineHome
+	}
+	if c.UI.Time != TimeAbsolute {
+		c.UI.Time = TimeRelative
 	}
 }

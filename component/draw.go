@@ -174,9 +174,17 @@ func tidyText(s string) string {
 	return strings.TrimSpace(s)
 }
 
+var AbsoluteTime bool
+
 func relativeTime(t time.Time) string {
 	if t.IsZero() {
 		return ""
+	}
+	if AbsoluteTime {
+		if t.Year() == time.Now().Year() {
+			return t.Local().Format("01-02 15:04")
+		}
+		return t.Local().Format("2006-01-02 15:04")
 	}
 	d := time.Since(t)
 	switch {

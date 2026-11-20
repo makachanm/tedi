@@ -27,6 +27,9 @@ const (
 	itemRefresh
 	itemLimit
 	itemVisibility
+	itemTimeline
+	itemTime
+	itemCW
 	itemLogin
 	itemLogout
 	itemSave
@@ -78,7 +81,7 @@ func (v *settingsView) items() []settingsItem {
 	if v.cfg.UI.Layout != config.LayoutFit {
 		items = append(items, itemHeight)
 	}
-	items = append(items, itemRefresh, itemLimit, itemVisibility, itemLogin)
+	items = append(items, itemRefresh, itemLimit, itemVisibility, itemTimeline, itemTime, itemCW, itemLogin)
 	if v.cfg.Session.LoggedIn() {
 		items = append(items, itemLogout)
 	}
@@ -101,6 +104,12 @@ func (v *settingsView) label(item settingsItem) string {
 		return fmt.Sprintf("%-17s < %d >", "Items per load", v.cfg.UI.Limit)
 	case itemVisibility:
 		return fmt.Sprintf("%-17s < %s >", "Note visibility", v.cfg.UI.Visibility)
+	case itemTimeline:
+		return fmt.Sprintf("%-17s < %s >", "Start timeline", v.cfg.UI.Timeline)
+	case itemTime:
+		return fmt.Sprintf("%-17s < %s >", "Time", v.cfg.UI.Time)
+	case itemCW:
+		return fmt.Sprintf("%-17s < %s >", "Open CW", onOff(v.cfg.UI.ShowCW))
 	case itemLogin:
 		if v.cfg.Session.LoggedIn() {
 			return "Log in again"
@@ -156,6 +165,21 @@ func (v *settingsView) adjustVisibility(delta int) {
 	v.cfg.UI.Visibility = config.VisibilitySteps[i]
 }
 
+func (v *settingsView) adjustTimeline(delta int) {
+	i := slices.Index(config.TimelineSteps, v.cfg.UI.Timeline) + delta
+	if i < 0 || i >= len(config.TimelineSteps) {
+		return
+	}
+	v.cfg.UI.Timeline = config.TimelineSteps[i]
+}
+
+func onOff(b bool) string {
+	if b {
+		return "on"
+	}
+	return "off"
+}
+
 func (v *settingsView) toggle(item settingsItem) {
 	switch item {
 	case itemLayout:
@@ -164,6 +188,14 @@ func (v *settingsView) toggle(item settingsItem) {
 		} else {
 			v.cfg.UI.Layout = config.LayoutFit
 		}
+	case itemTime:
+		if v.cfg.UI.Time == config.TimeAbsolute {
+			v.cfg.UI.Time = config.TimeRelative
+		} else {
+			v.cfg.UI.Time = config.TimeAbsolute
+		}
+	case itemCW:
+		v.cfg.UI.ShowCW = !v.cfg.UI.ShowCW
 	}
 }
 
@@ -183,6 +215,18 @@ func (v *settingsView) hint(item settingsItem) string {
 		return fmt.Sprintf("Load up to %d notes or notifications at a time. Larger numbers take more requests.", v.cfg.UI.Limit)
 	case itemVisibility:
 		return visibilityHint(configVisibility(v.cfg.UI.Visibility))
+	case itemTimeline:
+		return "Timeline shown when tedi starts."
+	case itemTime:
+		if v.cfg.UI.Time == config.TimeAbsolute {
+			return "absolute: date and time, like 11-20 14:03."
+		}
+		return "relative: time since posting, like 5m or 2h."
+	case itemCW:
+		if v.cfg.UI.ShowCW {
+			return "Notes with a content warning open by default. z still toggles."
+		}
+		return "Notes with a content warning stay folded until you press z."
 	}
 	return ""
 }
@@ -218,8 +262,6 @@ func (v *settingsView) handleKey(ev *tcell.EventKey) (SettingsAction, bool) {
 
 	case ev.Key() == tcell.KeyLeft || (ev.Key() == tcell.KeyRune && ev.Rune() == '-'):
 		switch selected {
-		case itemLayout:
-			v.toggle(selected)
 		case itemHeight:
 			v.adjustHeight(-1)
 		case itemRefresh:
@@ -228,11 +270,13 @@ func (v *settingsView) handleKey(ev *tcell.EventKey) (SettingsAction, bool) {
 			v.adjustLimit(-1)
 		case itemVisibility:
 			v.adjustVisibility(-1)
+		case itemTimeline:
+			v.adjustTimeline(-1)
+		case itemLayout, itemTime, itemCW:
+			v.toggle(selected)
 		}
 	case ev.Key() == tcell.KeyRight || (ev.Key() == tcell.KeyRune && (ev.Rune() == '+' || ev.Rune() == '=')):
 		switch selected {
-		case itemLayout:
-			v.toggle(selected)
 		case itemHeight:
 			v.adjustHeight(1)
 		case itemRefresh:
@@ -241,11 +285,15 @@ func (v *settingsView) handleKey(ev *tcell.EventKey) (SettingsAction, bool) {
 			v.adjustLimit(1)
 		case itemVisibility:
 			v.adjustVisibility(1)
+		case itemTimeline:
+			v.adjustTimeline(1)
+		case itemLayout, itemTime, itemCW:
+			v.toggle(selected)
 		}
 
 	case ev.Key() == tcell.KeyEnter:
 		switch selected {
-		case itemLayout:
+		case itemLayout, itemTime, itemCW:
 			v.toggle(selected)
 		case itemLogin:
 			return SettingsLogin, true

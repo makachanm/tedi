@@ -13,6 +13,7 @@ import (
 	"tedi/app"
 	"tedi/app/scene"
 	"tedi/auth"
+	"tedi/component"
 	"tedi/config"
 	"tedi/layer"
 
@@ -347,6 +348,8 @@ func runClient(args []string) error {
 	if err := m.InitTerminalScreen(); err != nil {
 		return err
 	}
+
+	component.AbsoluteTime = cfg.UI.Time == config.TimeAbsolute
 
 	detail := scene.NewNoteScreen(cfg, client)
 	profile := scene.NewProfileScreen(cfg, client, detail)

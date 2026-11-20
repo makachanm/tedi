@@ -35,6 +35,7 @@ func NewProfileScreen(cfg config.Configuration, client layer.Client, detail *Not
 	ps.FetchLayer = client
 	ps.detail = detail
 	ps.config = cfg
+	ps.showcw = cfg.UI.ShowCW
 	ps.open("")
 	return ps
 }

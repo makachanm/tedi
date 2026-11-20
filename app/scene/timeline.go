@@ -75,9 +75,16 @@ func NewTimelineScreen(cfg config.Configuration, client layer.Client, detail *No
 	ts.profile = profile
 	ts.compose = compose
 	ts.config = cfg
-	ts.showcw = false
+	ts.showcw = cfg.UI.ShowCW
 
-	ts.currunt_tl = CURRUNTTL_HOME
+	switch cfg.UI.Timeline {
+	case config.TimelineLocal:
+		ts.currunt_tl = CURRUNTTL_LOCAL
+	case config.TimelineGlobal:
+		ts.currunt_tl = CURRUNTTL_GLOBAL
+	default:
+		ts.currunt_tl = CURRUNTTL_HOME
+	}
 	ts.Timelines.SetItems(getTimeline(ts.FetchLayer, ts.currunt_tl))
 
 	return ts
