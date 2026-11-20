@@ -21,7 +21,7 @@ func DrawNoteComponent(x int, y int, note layer.Note, ctx tcell.Screen, style tc
 	row := y
 
 	if note.RenotedBy != "" {
-		writeSegments(ctx, x+1, row, width, []segment{{"↻ " + note.RenotedBy + " renoted", style.Foreground(tcell.ColorGreen)}})
+		writeSegments(ctx, x+1, row, width, []segment{{"↻ " + note.RenotedBy + " renoted", style.Foreground(utils.RenoteColor)}})
 		row++
 	}
 

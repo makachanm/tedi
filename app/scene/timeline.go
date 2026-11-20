@@ -8,6 +8,7 @@ import (
 	"tedi/component"
 	"tedi/config"
 	"tedi/layer"
+	"tedi/utils"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -203,7 +204,7 @@ func (ts *TimelineScreen) autoRefresh(screen tcell.Screen, ctx app.ApplicationCo
 func (ts *TimelineScreen) drawNotes(screen tcell.Screen, ctx app.ApplicationContext) {
 	ts.timelinelock.Lock()
 	defer ts.timelinelock.Unlock()
-	textStyle := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
+	textStyle := utils.TextStyle()
 
 	y := 0
 	for i, note := range ts.Timelines.GetCurruntPage() {

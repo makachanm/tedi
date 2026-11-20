@@ -43,9 +43,7 @@ func (t *TerminalMainApp) InitTerminalScreen() error {
 		return fmt.Errorf("Failed to init screen: %v", e)
 	}
 
-	// TODO: make color to customizeable
-	color := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
-	t.screen.SetStyle(color)
+	t.screen.SetStyle(utils.TextStyle())
 
 	return nil
 }
@@ -57,9 +55,7 @@ func (t *TerminalMainApp) RegisterScene(name string, scene ApplicationScene) {
 // TODO: add global event handling
 func (t *TerminalMainApp) DrawStatusBar(input string) {
 	_, h := t.screen.Size()
-	textStyle := tcell.StyleDefault.Foreground(tcell.ColorBlack).Background(tcell.ColorWhite)
-
-	utils.FillLine(t.screen, h-1, input, textStyle)
+	utils.FillLine(t.screen, h-1, input, utils.BarStyle())
 }
 
 func (t *TerminalMainApp) Mainloop() {

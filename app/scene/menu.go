@@ -3,6 +3,7 @@ package scene
 import (
 	"tedi/app"
 	"tedi/component"
+	"tedi/utils"
 
 	"github.com/gdamore/tcell/v2"
 )
@@ -124,7 +125,7 @@ func (ms *MenuScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app.Ap
 }
 
 func (ms *MenuScreen) draw(screen tcell.Screen, ctx app.ApplicationContext) {
-	style := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
+	style := utils.TextStyle()
 
 	var items []component.MenuItem
 	for item := menuHome; item <= menuQuit; item++ {

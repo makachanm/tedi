@@ -9,6 +9,7 @@ import (
 	"tedi/component"
 	"tedi/config"
 	"tedi/layer"
+	"tedi/utils"
 
 	"github.com/gdamore/tcell/v2"
 )
@@ -251,7 +252,7 @@ func (cs *ComposeScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app
 }
 
 func (cs *ComposeScreen) draw(screen tcell.Screen, ctx app.ApplicationContext) {
-	textStyle := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
+	textStyle := utils.TextStyle()
 	w, h := screen.Size()
 
 	var items []component.MenuItem

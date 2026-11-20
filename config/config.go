@@ -45,6 +45,24 @@ const (
 	TimeAbsolute = "absolute"
 )
 
+var ColorSteps = []string{"white", "silver", "gray", "red", "orange", "yellow", "lime", "green", "aqua", "blue", "fuchsia", "pink"}
+
+type ColorConfiguration struct {
+	Text     string `json:"text"`
+	Bar      string `json:"bar"`
+	Renote   string `json:"renote"`
+	Reaction string `json:"reaction"`
+	Mention  string `json:"mention"`
+}
+
+var DefaultColors = ColorConfiguration{
+	Text:     "white",
+	Bar:      "white",
+	Renote:   "green",
+	Reaction: "yellow",
+	Mention:  "aqua",
+}
+
 type Configuration struct {
 	Session SessionConfiguration `json:"session"`
 	UI      UIConfiguration      `json:"ui"`
@@ -59,6 +77,8 @@ type UIConfiguration struct {
 	Timeline      string `json:"timeline"`
 	Time          string `json:"time"`
 	ShowCW        bool   `json:"showcw"`
+
+	Colors ColorConfiguration `json:"colors"`
 }
 
 const (
@@ -126,5 +146,21 @@ func (c *Configuration) applyDefaults() {
 	}
 	if c.UI.Time != TimeAbsolute {
 		c.UI.Time = TimeRelative
+	}
+	colors := &c.UI.Colors
+	if !slices.Contains(ColorSteps, colors.Text) {
+		colors.Text = DefaultColors.Text
+	}
+	if !slices.Contains(ColorSteps, colors.Bar) {
+		colors.Bar = DefaultColors.Bar
+	}
+	if !slices.Contains(ColorSteps, colors.Renote) {
+		colors.Renote = DefaultColors.Renote
+	}
+	if !slices.Contains(ColorSteps, colors.Reaction) {
+		colors.Reaction = DefaultColors.Reaction
+	}
+	if !slices.Contains(ColorSteps, colors.Mention) {
+		colors.Mention = DefaultColors.Mention
 	}
 }

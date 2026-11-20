@@ -2,6 +2,7 @@ package component
 
 import (
 	"tedi/layer"
+	"tedi/utils"
 
 	"github.com/gdamore/tcell/v2"
 )
@@ -9,11 +10,11 @@ import (
 func notificationLabel(t layer.NotificationType) (string, tcell.Color) {
 	switch t {
 	case layer.NOTI_MENTION:
-		return "Mention", tcell.ColorAqua
+		return "Mention", utils.MentionColor
 	case layer.NOTI_FAVOURITE:
-		return "Favourite", tcell.ColorYellow
+		return "Favourite", utils.ReactionColor
 	case layer.NOTI_RENOTE:
-		return "Renote", tcell.ColorGreen
+		return "Renote", utils.RenoteColor
 	case layer.NOTI_FOLLOW:
 		return "Follow", tcell.ColorFuchsia
 	default:

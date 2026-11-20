@@ -8,6 +8,7 @@ import (
 	"tedi/component"
 	"tedi/config"
 	"tedi/layer"
+	"tedi/utils"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -139,7 +140,7 @@ func (ns *NotificationScreen) autoRefresh(screen tcell.Screen, ctx app.Applicati
 func (ns *NotificationScreen) drawNotis(screen tcell.Screen, ctx app.ApplicationContext) {
 	ns.notilock.Lock()
 	defer ns.notilock.Unlock()
-	textStyle := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
+	textStyle := utils.TextStyle()
 
 	y := 0
 	for i, noti := range ns.Notifications.GetCurruntPage() {

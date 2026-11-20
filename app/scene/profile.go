@@ -8,6 +8,7 @@ import (
 	"tedi/component"
 	"tedi/config"
 	"tedi/layer"
+	"tedi/utils"
 
 	"github.com/gdamore/tcell/v2"
 )
@@ -174,7 +175,7 @@ func (ps *ProfileScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app
 func (ps *ProfileScreen) drawProfile(screen tcell.Screen, ctx app.ApplicationContext) {
 	ps.lock.Lock()
 	defer ps.lock.Unlock()
-	textStyle := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
+	textStyle := utils.TextStyle()
 
 	y := 0
 	if ps.loaded {

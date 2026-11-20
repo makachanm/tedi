@@ -16,7 +16,9 @@ import (
 	"tedi/component"
 	"tedi/config"
 	"tedi/layer"
+	"tedi/utils"
 
+	"github.com/gdamore/tcell/v2"
 	"golang.org/x/term"
 )
 
@@ -343,6 +345,12 @@ func runClient(args []string) error {
 	if err != nil {
 		return err
 	}
+
+	utils.TextColor = tcell.GetColor(cfg.UI.Colors.Text)
+	utils.BarColor = tcell.GetColor(cfg.UI.Colors.Bar)
+	utils.RenoteColor = tcell.GetColor(cfg.UI.Colors.Renote)
+	utils.ReactionColor = tcell.GetColor(cfg.UI.Colors.Reaction)
+	utils.MentionColor = tcell.GetColor(cfg.UI.Colors.Mention)
 
 	m := app.NewTerminalScreen()
 	if err := m.InitTerminalScreen(); err != nil {

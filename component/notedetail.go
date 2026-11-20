@@ -124,7 +124,7 @@ func noteDetailLines(note layer.Note, width int, style tcell.Style) []line {
 	dim := dimStyle(style)
 
 	if note.RenotedBy != "" {
-		lines = append(lines, line{"↻ " + note.RenotedBy + " renoted", style.Foreground(tcell.ColorGreen)})
+		lines = append(lines, line{"↻ " + note.RenotedBy + " renoted", style.Foreground(utils.RenoteColor)})
 	}
 
 	name := note.Author_name

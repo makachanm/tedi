@@ -30,6 +30,12 @@ const (
 	itemTimeline
 	itemTime
 	itemCW
+	itemTextColor
+	itemBarColor
+	itemRenoteColor
+	itemReactionColor
+	itemMentionColor
+	itemDefaultColors
 	itemLogin
 	itemLogout
 	itemSave
@@ -81,7 +87,8 @@ func (v *settingsView) items() []settingsItem {
 	if v.cfg.UI.Layout != config.LayoutFit {
 		items = append(items, itemHeight)
 	}
-	items = append(items, itemRefresh, itemLimit, itemVisibility, itemTimeline, itemTime, itemCW, itemLogin)
+	items = append(items, itemRefresh, itemLimit, itemVisibility, itemTimeline, itemTime, itemCW,
+		itemTextColor, itemBarColor, itemRenoteColor, itemReactionColor, itemMentionColor, itemDefaultColors, itemLogin)
 	if v.cfg.Session.LoggedIn() {
 		items = append(items, itemLogout)
 	}
@@ -110,6 +117,10 @@ func (v *settingsView) label(item settingsItem) string {
 		return fmt.Sprintf("%-17s < %s >", "Time", v.cfg.UI.Time)
 	case itemCW:
 		return fmt.Sprintf("%-17s < %s >", "Open CW", onOff(v.cfg.UI.ShowCW))
+	case itemTextColor, itemBarColor, itemRenoteColor, itemReactionColor, itemMentionColor:
+		return fmt.Sprintf("%-17s < %s >", colorLabel(item), *v.color(item))
+	case itemDefaultColors:
+		return "Reset colors"
 	case itemLogin:
 		if v.cfg.Session.LoggedIn() {
 			return "Log in again"
@@ -173,6 +184,47 @@ func (v *settingsView) adjustTimeline(delta int) {
 	v.cfg.UI.Timeline = config.TimelineSteps[i]
 }
 
+func colorLabel(item settingsItem) string {
+	switch item {
+	case itemTextColor:
+		return "Text color"
+	case itemBarColor:
+		return "Bar color"
+	case itemRenoteColor:
+		return "Renote color"
+	case itemReactionColor:
+		return "Reaction color"
+	case itemMentionColor:
+		return "Mention color"
+	}
+	return ""
+}
+
+func (v *settingsView) color(item settingsItem) *string {
+	switch item {
+	case itemTextColor:
+		return &v.cfg.UI.Colors.Text
+	case itemBarColor:
+		return &v.cfg.UI.Colors.Bar
+	case itemRenoteColor:
+		return &v.cfg.UI.Colors.Renote
+	case itemReactionColor:
+		return &v.cfg.UI.Colors.Reaction
+	case itemMentionColor:
+		return &v.cfg.UI.Colors.Mention
+	}
+	return nil
+}
+
+func (v *settingsView) adjustColor(item settingsItem, delta int) {
+	c := v.color(item)
+	i := slices.Index(config.ColorSteps, *c) + delta
+	if i < 0 || i >= len(config.ColorSteps) {
+		return
+	}
+	*c = config.ColorSteps[i]
+}
+
 func onOff(b bool) string {
 	if b {
 		return "on"
@@ -222,6 +274,18 @@ func (v *settingsView) hint(item settingsItem) string {
 			return "absolute: date and time, like 11-20 14:03."
 		}
 		return "relative: time since posting, like 5m or 2h."
+	case itemTextColor:
+		return "Color of notes, menus and other text."
+	case itemBarColor:
+		return "Color of the bar at the bottom."
+	case itemRenoteColor:
+		return "Color of renote marks and renote notifications."
+	case itemReactionColor:
+		return "Color of reaction notifications."
+	case itemMentionColor:
+		return "Color of mention notifications and reply marks."
+	case itemDefaultColors:
+		return "Put every color back to the default."
 	case itemCW:
 		if v.cfg.UI.ShowCW {
 			return "Notes with a content warning open by default. z still toggles."
@@ -272,6 +336,8 @@ func (v *settingsView) handleKey(ev *tcell.EventKey) (SettingsAction, bool) {
 			v.adjustVisibility(-1)
 		case itemTimeline:
 			v.adjustTimeline(-1)
+		case itemTextColor, itemBarColor, itemRenoteColor, itemReactionColor, itemMentionColor:
+			v.adjustColor(selected, -1)
 		case itemLayout, itemTime, itemCW:
 			v.toggle(selected)
 		}
@@ -287,6 +353,8 @@ func (v *settingsView) handleKey(ev *tcell.EventKey) (SettingsAction, bool) {
 			v.adjustVisibility(1)
 		case itemTimeline:
 			v.adjustTimeline(1)
+		case itemTextColor, itemBarColor, itemRenoteColor, itemReactionColor, itemMentionColor:
+			v.adjustColor(selected, 1)
 		case itemLayout, itemTime, itemCW:
 			v.toggle(selected)
 		}
@@ -295,6 +363,8 @@ func (v *settingsView) handleKey(ev *tcell.EventKey) (SettingsAction, bool) {
 		switch selected {
 		case itemLayout, itemTime, itemCW:
 			v.toggle(selected)
+		case itemDefaultColors:
+			v.cfg.UI.Colors = config.DefaultColors
 		case itemLogin:
 			return SettingsLogin, true
 		case itemLogout:
@@ -336,10 +406,14 @@ func (v *settingsView) draw(s tcell.Screen) {
 
 	y++
 	for i, item := range v.items() {
+		x := 1
 		if i == v.cursor {
-			utils.WriteTo(s, 1, y, " > "+v.label(item)+" ", settingsSelected)
+			x += utils.WriteTo(s, x, y, " > "+v.label(item)+" ", settingsSelected)
 		} else {
-			utils.WriteTo(s, 1, y, "   "+v.label(item), settingsNormal)
+			x += utils.WriteTo(s, x, y, "   "+v.label(item)+" ", settingsNormal)
+		}
+		if c := v.color(item); c != nil {
+			utils.WriteTo(s, x+1, y, "■■■", settingsNormal.Foreground(tcell.GetColor(*c)))
 		}
 		y++
 	}

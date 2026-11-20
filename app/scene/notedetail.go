@@ -6,6 +6,7 @@ import (
 	"tedi/component"
 	"tedi/config"
 	"tedi/layer"
+	"tedi/utils"
 
 	"github.com/gdamore/tcell/v2"
 )
@@ -156,7 +157,7 @@ func (ns *NoteScreen) DoScene(screen tcell.Screen, event tcell.Event, ctx app.Ap
 }
 
 func (ns *NoteScreen) drawNote(screen tcell.Screen, ctx app.ApplicationContext) {
-	textStyle := tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack)
+	textStyle := utils.TextStyle()
 	w, h := screen.Size()
 
 	ns.rows = h - 4

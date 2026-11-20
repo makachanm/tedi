@@ -19,7 +19,7 @@ func DrawComposePreview(x int, y int, width int, rows int, author string, text s
 
 	lines := []line{{strings.Repeat("─", width), dim}}
 	if reply != nil {
-		lines = append(lines, line{"↩ Replying to @" + reply.Author_finger, style.Foreground(tcell.ColorAqua)})
+		lines = append(lines, line{"↩ Replying to @" + reply.Author_finger, style.Foreground(utils.MentionColor)})
 		quoted := wrapLines(htmlToText(reply.Content, false), width-2, dim)
 		if len(quoted) > 3 {
 			quoted = quoted[:3]
