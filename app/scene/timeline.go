@@ -69,7 +69,7 @@ func NewTimelineScreen(cfg config.Configuration, client layer.Client, detail *No
 	ts := new(TimelineScreen)
 
 	ts.Timelines = paging.NewPagedList(cfg.UI, cfg.UI.Limit, func(note layer.Note, screenW int) int {
-		return component.NoteHeight(note, screenW, 1, ts.showcw)
+		return component.NoteHeight(note, screenW, 0, ts.showcw)
 	})
 	ts.FetchLayer = client
 	ts.detail = detail
@@ -209,7 +209,7 @@ func (ts *TimelineScreen) drawNotes(screen tcell.Screen, ctx app.ApplicationCont
 	y := 0
 	for i, note := range ts.Timelines.GetCurruntPage() {
 		height := ts.Timelines.Height(note)
-		component.DrawNoteComponent(1, y, note, screen, textStyle, height, ts.showcw, i == ts.Timelines.Cursor)
+		component.DrawNoteComponent(0, y, note, screen, textStyle, height, ts.showcw, i == ts.Timelines.Cursor)
 		y += height
 	}
 

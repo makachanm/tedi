@@ -45,7 +45,7 @@ func DrawNotificationComponent(x int, y int, noti layer.Notification, ctx tcell.
 		header = append(header, segment{user.User_name + " ", style.Bold(true)})
 	}
 	header = append(header, segment{"@" + user.User_finger, dimStyle(style)})
-	drawHeader(ctx, x+1, y, width, cursorSegments(selected, style, header), relativeTime(noti.Time), style)
+	drawHeader(ctx, x, y, width, cursorSegments(selected, style, header), relativeTime(noti.Time), style)
 
 	if noti.Type == layer.NOTI_FOLLOW || noti.Content == "" {
 		return
@@ -56,5 +56,5 @@ func DrawNotificationComponent(x int, y int, noti layer.Notification, ctx tcell.
 		bodyStyle = dimStyle(style)
 	}
 	lines := wrapLines(htmlToText(noti.Content, false), width-2, bodyStyle)
-	drawBody(ctx, x+1, y+1, maxheight-2, width-2, lines, style)
+	drawBody(ctx, x, y+1, maxheight-2, width-2, lines, style)
 }

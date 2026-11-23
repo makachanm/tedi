@@ -46,7 +46,7 @@ func (ps *ProfileScreen) open(userId string) {
 	defer ps.lock.Unlock()
 	ps.profileView = profileView{userId: userId}
 	ps.notes = paging.NewPagedList(ps.config.UI, ps.config.UI.Limit, func(note layer.Note, screenW int) int {
-		return component.NoteHeight(note, screenW, 1, ps.showcw)
+		return component.NoteHeight(note, screenW, 0, ps.showcw)
 	})
 }
 
@@ -72,7 +72,7 @@ func (ps *ProfileScreen) resize(screen tcell.Screen) {
 	ps.lock.Lock()
 	defer ps.lock.Unlock()
 	w, h := screen.Size()
-	header := component.ProfileHeight(ps.profile, w, 2)
+	header := component.ProfileHeight(ps.profile, w, 0)
 	ps.notes.Resize(w, max(h-header, 2))
 }
 
@@ -179,12 +179,12 @@ func (ps *ProfileScreen) drawProfile(screen tcell.Screen, ctx app.ApplicationCon
 
 	y := 0
 	if ps.loaded {
-		y = component.DrawProfileHeader(2, 0, ps.profile, screen, textStyle)
+		y = component.DrawProfileHeader(0, 0, ps.profile, screen, textStyle)
 	}
 
 	for i, note := range ps.notes.GetCurruntPage() {
 		height := ps.notes.Height(note)
-		component.DrawNoteComponent(1, y, note, screen, textStyle, height, ps.showcw, i == ps.notes.Cursor)
+		component.DrawNoteComponent(0, y, note, screen, textStyle, height, ps.showcw, i == ps.notes.Cursor)
 		y += height
 	}
 

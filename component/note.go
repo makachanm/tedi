@@ -21,7 +21,7 @@ func DrawNoteComponent(x int, y int, note layer.Note, ctx tcell.Screen, style tc
 	row := y
 
 	if note.RenotedBy != "" {
-		writeSegments(ctx, x+1, row, width, []segment{{"↻ " + note.RenotedBy + " renoted", style.Foreground(utils.RenoteColor)}})
+		writeSegments(ctx, x, row, width, []segment{{"↻ " + note.RenotedBy + " renoted", style.Foreground(utils.RenoteColor)}})
 		row++
 	}
 
@@ -29,14 +29,14 @@ func DrawNoteComponent(x int, y int, note layer.Note, ctx tcell.Screen, style tc
 	if name == "" {
 		name = note.Author_finger
 	}
-	drawHeader(ctx, x+1, row, width, cursorSegments(selected, style, []segment{
+	drawHeader(ctx, x, row, width, cursorSegments(selected, style, []segment{
 		{name, style.Bold(true)},
 		{" @" + note.Author_finger, dim},
 	}), relativeTime(note.Time), style)
 	row++
 
 	lastRow := y + maxheight - 2
-	metaRow := row + drawBody(ctx, x+1, row, lastRow-row, width-2, noteLines(note, viewcw, width-2, style), style)
+	metaRow := row + drawBody(ctx, x, row, lastRow-row, width-2, noteLines(note, viewcw, width-2, style), style)
 
 	meta := []string{strings.ToLower(layer.VisiblityToText(note.Visiblity))}
 	if note.RenoteCount > 0 {
@@ -45,7 +45,7 @@ func DrawNoteComponent(x int, y int, note layer.Note, ctx tcell.Screen, style tc
 	if note.ReactionCount > 0 {
 		meta = append(meta, plural(note.ReactionCount, "fav"))
 	}
-	writeSegments(ctx, x+1, metaRow, width, []segment{{strings.Join(meta, "  "), dim}})
+	writeSegments(ctx, x, metaRow, width, []segment{{strings.Join(meta, "  "), dim}})
 }
 
 func NoteHeight(note layer.Note, screenW int, x int, viewcw bool) int {

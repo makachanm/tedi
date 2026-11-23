@@ -30,7 +30,7 @@ type NotificationScreen struct {
 func NewNotificationScreen(cfg config.Configuration, client layer.Client, detail *NoteScreen, profile *ProfileScreen) *NotificationScreen {
 	ts := new(NotificationScreen)
 	ts.Notifications = paging.NewPagedList(cfg.UI, cfg.UI.Limit, func(noti layer.Notification, screenW int) int {
-		return component.NotificationHeight(noti, screenW, 1)
+		return component.NotificationHeight(noti, screenW, 0)
 	})
 	ts.FetchLayer = client
 	ts.detail = detail
@@ -145,7 +145,7 @@ func (ns *NotificationScreen) drawNotis(screen tcell.Screen, ctx app.Application
 	y := 0
 	for i, noti := range ns.Notifications.GetCurruntPage() {
 		height := ns.Notifications.Height(noti)
-		component.DrawNotificationComponent(1, y, noti, screen, textStyle, height, i == ns.Notifications.Cursor)
+		component.DrawNotificationComponent(0, y, noti, screen, textStyle, height, i == ns.Notifications.Cursor)
 		y += height
 	}
 
